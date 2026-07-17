@@ -1,530 +1,350 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>School Management WebApp</title>
-  <!-- Tailwind CSS CDN -->
+  <title>APS Attendance & Educational History System</title>
+  
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; font-size: 14px; }
-      .no-print { display: none !important; }
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Tailwind Configuration for Custom Colors -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            glass: "rgba(30, 41, 59, 0.75)",
+          }
+        }
+      }
     }
-  </style>
+  </script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<body class="text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- टॉप नेविगेशन -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <span id="sessionBadge" class="bg-orange-100 text-orange-700 text-sm font-semibold px-3 py-1 rounded-md border border-orange-200">Session: Loading...</span>
-      </div>
-      <nav class="flex space-x-2">
-        <button id="tabBtnAtt" onclick="switchTab('attendance')" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white shadow-sm transition">Attendance</button>
-        <button id="tabBtnEdu" onclick="switchTab('educational')" class="px-4 py-2 text-sm font-medium rounded-md bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition">Educational History</button>
-      </nav>
-    </div>
-  </header>
+  <!-- ================= PRINTABLE AREA FOR A4 REPORTS ================= -->
+  <div id="printReportContainer" class="hidden"></div>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 no-print">
+  <!-- ================= MAIN APP WRAPPER ================= -->
+  <div class="min-h-screen flex flex-col print-hide">
     
-    <!-- फ़िल्टर और कंट्रोल सेक्शन -->
-    <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
-      <div class="w-full sm:w-auto flex-1 min-w-[200px]" id="dateContainer">
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Select Attendance Date</label>
-        <input type="date" id="attDate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-      <div class="w-full sm:w-auto flex-1 min-w-[150px]">
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Select Class</label>
-        <select id="classSelect" onchange="filterStudents()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-      </div>
-      <div class="w-full sm:w-auto flex-1 min-w-[150px]">
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Select Section</label>
-        <select id="sectionSelect" onchange="filterStudents()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-      </div>
-      <div class="w-full sm:w-auto flex-1 min-w-[200px] hidden" id="searchContainer">
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Search Student</label>
-        <input type="text" id="studentSearch" oninput="filterStudents()" placeholder="Name or ID..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
-    </section>
+    <!-- --- TOP GLASS NAVIGATION BAR --- -->
+    <header class="glass-nav sticky top-0 z-40 px-4 sm:px-8 py-4">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-600/30">
+              APS
+            </div>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
+                Student Portal
+              </h1>
+              <p class="text-xs text-indigo-300/80 font-medium">Attendance & Educational History System</p>
+            </div>
+          </div>
 
-    <!-- स्टूडेंट लिस्ट व्यू -->
-    <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <!-- पीसी (Desktop) टेबल व्यू -->
-      <div class="hidden md:block overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase border-b border-slate-700">
-              <th class="px-6 py-4 w-24">Photo</th>
-              <th class="px-6 py-4">Student Details</th>
-              <th class="px-6 py-4 text-center" id="thAction">Attendance Status</th>
-              <th class="px-6 py-4 text-right" id="thSummary">Summary</th>
-            </tr>
-          </thead>
-          <tbody id="studentTableBody" class="divide-y divide-slate-100">
-            <!-- डायनामिक डेटा यहाँ आएगा -->
-          </tbody>
-        </table>
+          <!-- Settings Button & API Status (Mobile/Desktop) -->
+          <div class="flex items-center gap-2">
+            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 cursor-pointer" title="Click to configure API URL">
+              <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>Demo Mode
+            </div>
+            <button id="btnSettings" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all shadow-sm" title="Configure Google Apps Script API URL">
+              ⚙️
+            </button>
+          </div>
+        </div>
+
+        <!-- Module Switch Tabs -->
+        <nav class="flex items-center bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 w-full md:w-auto">
+          <button id="tabAttendance" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-lg">
+            <span>📋 Student Attendance</span>
+          </button>
+          <button id="tabHistory" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-slate-800/60 text-slate-300 hover:text-white">
+            <span>📊 Educational History</span>
+          </button>
+        </nav>
+
+      </div>
+    </header>
+
+    <!-- --- MAIN CONTENT CONTAINER --- -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
+      
+      <!-- ================= MODULE 1: STUDENT ATTENDANCE ================= -->
+      <section id="moduleAttendance" class="space-y-6">
+        
+        <!-- Top Filter Bar -->
+        <div class="glass-panel p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+          
+          <!-- Session Select -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Session:</label>
+            <select class="session-select bg-slate-800 text-indigo-300 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </select>
+          </div>
+
+          <!-- Attendance Date Picker -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Attendance Date:</label>
+            <input type="date" id="attendanceDateInput" class="bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+          </div>
+
+          <!-- Class Filter -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Class:</label>
+            <select id="attFilterClass" class="filter-class bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">All Classes</option>
+              <option value="Class 9">Class 9</option>
+              <option value="Class 10">Class 10</option>
+              <option value="Class 11">Class 11</option>
+              <option value="Class 12">Class 12</option>
+            </select>
+          </div>
+
+          <!-- Section Filter -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Section:</label>
+            <select id="attFilterSection" class="filter-section bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">All Sections</option>
+              <option value="Section A">Section A</option>
+              <option value="Section B">Section B</option>
+              <option value="Section C">Section C</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- PC Full-Width Table View -->
+        <div class="hidden md:block glass-panel rounded-2xl overflow-hidden shadow-xl border border-slate-700/60">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-800/80 border-b border-slate-700 text-slate-300 text-xs font-bold uppercase tracking-wider">
+                <th class="p-4 w-28">Student ID</th>
+                <th class="p-4">Student Info</th>
+                <th class="p-4 text-center w-36">Total Present</th>
+                <th class="p-4 text-center w-36">Month Present</th>
+                <th class="p-4 text-center w-48">Attendance Status</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTableBody" class="divide-y divide-slate-700/60 text-sm">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Touch-Friendly Card View -->
+        <div id="attendanceCardContainer" class="md:hidden grid grid-cols-1 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Bottom Submit Section -->
+        <div class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border-t-2 border-indigo-500/50">
+          <div>
+            <h4 class="font-bold text-white text-base">Save Daily Attendance</h4>
+            <p class="text-xs text-slate-400">Updates live 'Total Present' and 'Month Present' columns automatically.</p>
+          </div>
+          <button id="btnSubmitAttendance" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+            <span>🚀 Submit Attendance</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ================= MODULE 2: EDUCATIONAL HISTORY ================= -->
+      <section id="moduleHistory" class="hidden space-y-6">
+        
+        <!-- Top Filter & Search Bar -->
+        <div class="glass-panel p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+          
+          <!-- Live Search Input -->
+          <div class="flex-1 min-w-[240px]">
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">🔍</span>
+              <input type="text" id="historySearchInput" placeholder="Search Student by Name or ID..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Class Filter -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Class:</label>
+            <select id="histFilterClass" class="filter-class bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">All Classes</option>
+              <option value="Class 9">Class 9</option>
+              <option value="Class 10">Class 10</option>
+              <option value="Class 11">Class 11</option>
+              <option value="Class 12">Class 12</option>
+            </select>
+          </div>
+
+          <!-- Section Filter -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Section:</label>
+            <select id="histFilterSection" class="filter-section bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">All Sections</option>
+              <option value="Section A">Section A</option>
+              <option value="Section B">Section B</option>
+              <option value="Section C">Section C</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Student Cards List -->
+        <div id="historyListContainer" class="grid grid-cols-1 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 text-center text-xs text-slate-500 border-t border-slate-800/80">
+      <p>Google Sheets + GitHub Pages Web App | Designed with Rich Aesthetics & Glassmorphism</p>
+    </footer>
+
+  </div>
+
+  <!-- ================= MODAL 1: SUBMIT REPORT (POP-UP FORM) ================= -->
+  <div id="modalSubmitReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print-hide">
+    <div class="glass-modal max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[90vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-5 bg-slate-900/90 border-b border-slate-700/80 flex items-center justify-between">
+        <div id="modalSubmitReportHeader">
+          <!-- Populated by JS: Student Name [ID] -->
+        </div>
+        <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
       </div>
 
-      <!-- मोबाइल (Mobile) कार्ड व्यू -->
-      <div id="studentCardContainer" class="block md:hidden p-4 space-y-4">
-        <!-- डायनामिक कार्ड्स यहाँ आएंगे -->
-      </div>
-    </section>
+      <!-- Modal Body (Form) -->
+      <form id="submitReportForm" class="p-6 overflow-y-auto space-y-5 flex-1">
+        <input type="hidden" id="reportStudentId">
+        <input type="hidden" id="reportStudentSession">
 
-    <!-- अटेंडेंस सबमिट बटन -->
-    <div class="mt-6 flex justify-end" id="submitAllAttContainer">
-      <button onclick="submitAllAttendance()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow transition">Submit Attendance</button>
+        <!-- Question 1 -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
+            1. Students reaction After teaching (Learning)
+          </label>
+          <input type="text" id="reportLearning" placeholder="e.g. Excellent / Understood the chapter well / Needs practice" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Question 2 -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
+            2. Students reaction After teaching (Writing)
+          </label>
+          <input type="text" id="reportWriting" placeholder="e.g. Neat handwriting / Completed notes / Fast and accurate" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Question 3 -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
+            3. Presence, cleanness (total)
+          </label>
+          <input type="text" id="reportPresence" placeholder="e.g. Uniform well washed / Nails clipped / Punctual and clean" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Question 4 -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
+            4. Study Material Availability
+          </label>
+          <input type="text" id="reportMaterial" placeholder="e.g. All textbooks available / Geometry box and books complete" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Question 5 -->
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-violet-300 mb-2">
+            5. Reaction of Parent after knowing all about Student
+          </label>
+          <textarea id="reportParent" rows="3" placeholder="e.g. Parent was very happy and satisfied with progress / Agreed to monitor daily studies at home" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+        </div>
+
+        <!-- Form Submit & Cancel Buttons -->
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+          <button type="button" class="close-modal-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/40 transition-all">
+            💾 Submit Report
+          </button>
+        </div>
+      </form>
+
     </div>
-  </main>
+  </div>
 
-  <!-- एम्बेड किया गया प्रिंट एरिया जो केवल प्रिंट के वक्त सक्रिय होता है -->
-  <div id="printArea" class="hidden p-8 bg-white"></div>
+  <!-- ================= MODAL 2: VIEW REPORT (TIMELINE & PRINT) ================= -->
+  <div id="modalTimelineReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md print-hide">
+    <div class="glass-modal max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[92vh] flex flex-col">
+      
+      <!-- Header with Close Button -->
+      <div class="px-6 py-4 bg-slate-900/95 border-b border-slate-700/80 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>📑 Student Educational History & Evaluation Timeline</span>
+        </h3>
+        <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
+      </div>
 
-  <!-- मोडल फॉर्म / पॉप-अप: Educational History डेटा इनपुट करने के लिए -->
-  <div id="eduModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
-        <h3 class="font-bold text-lg" id="modalHeaderTitle">Student Name [ID]</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      <!-- Timeline Scroll Area -->
+      <div id="modalTimelineContent" class="p-6 overflow-y-auto flex-1 space-y-6">
+        <!-- Populated by JS -->
       </div>
-      <div class="p-6 space-y-4 overflow-y-auto flex-1">
-        <input type="hidden" id="modalStudentId">
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Students reaction After teaching(Learning)</label>
-          <input type="text" id="eduQ1" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Students reaction After teaching(Writing)</label>
-          <input type="text" id="eduQ2" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Presence, cleanness(total)</label>
-          <input type="text" id="eduQ3" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Study Material Availbity</label>
-          <input type="text" id="eduQ4" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Reaction of Paret atfer knowing all about Student</label>
-          <textarea id="eduQ5" rows="3" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-        </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-700/80 flex justify-end">
+        <button class="close-modal-btn px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm">
+          Close
+        </button>
       </div>
-      <div class="bg-slate-50 px-6 py-4 flex justify-end space-x-2 border-t border-slate-100">
-        <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50">Cancel</button>
-        <button onclick="saveEducationalHistory()" class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm">Submit</button>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: API SETTINGS ================= -->
+  <div id="modalSettings" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print-hide">
+    <div class="glass-modal max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-slate-700 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">⚙️ Configure Google Apps Script URL</h3>
+        <button id="btnCloseSettings" class="p-1 rounded-lg text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div>
+        <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">Web App URL (`doGet` & `doPost` endpoint)</label>
+        <input type="text" id="inputApiUrl" placeholder="https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec" class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+          Deploy your <code class="text-indigo-300">Code.gs</code> as a Web App with access set to <strong class="text-white">"Anyone"</strong>, and paste the generated URL here. Leave empty to use Built-in Demo Mode.
+        </p>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button id="btnSaveSettings" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30">
+          Save Settings
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- मुख्य जावास्क्रिप्ट लॉजिक -->
-  <script>
-    // ⚠️ महत्वपूर्ण: नीचे दिए गए URL को अपने खुद के Apps Script Web App Deployment URL से बदलें
-    const API_URL = "https://script.google.com/macros/s/AKfycbzkm29tV0GXCFDwf0D695ziRe6dr8gcZ4wS8G_WbMlo4JZSOrZCfQJczLHWbuPD_z3yJw/exec";
+  <!-- ================= GLOBAL SPINNER ================= -->
+  <div id="globalSpinner" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs print-hide">
+    <div class="bg-slate-900/90 border border-slate-700 px-6 py-4 rounded-2xl flex items-center gap-4 shadow-2xl">
+      <div class="w-7 h-7 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <span class="font-semibold text-sm text-slate-200">Connecting to Google Sheets...</span>
+    </div>
+  </div>
 
-    let currentTab = 'attendance';
-    let globalData = { session: "", classes: [], sections: [], students: [] };
+  <!-- ================= GLOBAL TOAST NOTIFICATION ================= -->
+  <div id="globalToast" class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all transform translate-y-20 opacity-0 duration-300 z-50 bg-indigo-600 text-white print-hide">
+  </div>
 
-    // डिफ़ॉल्ट रूप से आज की तारीख को फ़ील्ड में सेट करना (Format: DD-MMM)
-    document.addEventListener("DOMContentLoaded", () => {
-      const today = new Date();
-      document.getElementById('attDate').value = today.toISOString().split('T')[0];
-      loadInitialData();
-    });
-
-    // बैकएंड से इनिशियल मास्टर डेटा लोड करना
-function loadInitialData() {
-  console.log("Fetching data from:", API_URL);
-  
-  fetch(`${API_URL}?action=getInitialData`, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json"
-    }
-  })
-  .then(res => {
-    if (!res.ok) {
-      throw new Error("Network response was not ok: " + res.statusText);
-    }
-    return res.json();
-  })
-  .then(data => {
-    console.log("Data received successfully:", data);
-    globalData = data;
-    document.getElementById("sessionBadge").innerText = `Session: ${data.session}`;
-    
-    populateDropdown("classSelect", data.classes);
-    populateDropdown("sectionSelect", data.sections);
-    
-    filterStudents();
-  })
-  .catch(err => {
-    console.error("Fetch Error:", err);
-    alert("कनेक्शन एरर: वेब ऐप से डेटा नहीं मिल पा रहा है। कृपया जांचें कि Apps Script सही से डिप्लॉय हुआ है या नहीं।\nDetailed Error: " + err.message);
-  });
-}
-
-    function populateDropdown(id, items) {
-      const select = document.getElementById(id);
-      select.innerHTML = items.map(item => `<option value="${item}">${item}</option>`).join('');
-    }
-
-    // मॉड्यूल टैब स्विचिंग लॉजिक
-    function switchTab(tab) {
-      currentTab = tab;
-      const btnAtt = document.getElementById("tabBtnAtt");
-      const btnEdu = document.getElementById("tabBtnEdu");
-      const dateCont = document.getElementById("dateContainer");
-      const searchCont = document.getElementById("searchContainer");
-      const thAction = document.getElementById("thAction");
-      const thSummary = document.getElementById("thSummary");
-      const submitAllCont = document.getElementById("submitAllAttContainer");
-
-      if (tab === 'attendance') {
-        btnAtt.className = "px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white shadow-sm transition";
-        btnEdu.className = "px-4 py-2 text-sm font-medium rounded-md bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition";
-        dateCont.classList.remove("hidden");
-        searchCont.classList.add("hidden");
-        thAction.innerText = "Attendance Status";
-        thSummary.classList.remove("hidden");
-        submitAllCont.classList.remove("hidden");
-      } else {
-        btnEdu.className = "px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white shadow-sm transition";
-        btnAtt.className = "px-4 py-2 text-sm font-medium rounded-md bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition";
-        dateCont.classList.add("hidden");
-        searchCont.classList.remove("hidden");
-        thAction.innerText = "Actions";
-        thSummary.classList.add("hidden");
-        submitAllCont.classList.add("hidden");
-      }
-      filterStudents();
-    }
-
-    // फ़िल्टर और सर्च के आधार पर UI लिस्ट रेंडर करना
-    function filterStudents() {
-      const selClass = document.getElementById("classSelect").value;
-      const selSection = document.getElementById("sectionSelect").value;
-      const searchVal = document.getElementById("studentSearch").value.toLowerCase();
-      
-      const filtered = globalData.students.filter(st => {
-        const matchesClass = st.className.toString() === selClass;
-        const matchesSection = st.section.toString() === selSection;
-        const matchesSearch = currentTab === 'educational' ? (st.name.toLowerCase().includes(searchVal) || st.id.toString().toLowerCase().includes(searchVal)) : true;
-        return matchesClass && matchesSection && matchesSearch;
-      });
-
-      renderDesktopTable(filtered);
-      renderMobileCards(filtered);
-    }
-
-    // पीसी लेआउट रेंडरर
-    function renderDesktopTable(students) {
-      const tbody = document.getElementById("studentTableBody");
-      if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-slate-400 text-sm">कोई छात्र सक्रिय नहीं मिला।</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = students.map(st => {
-        let actionHtml = "";
-        let summaryHtml = "";
-
-        if (currentTab === 'attendance') {
-          actionHtml = `
-            <div class="flex items-center justify-center space-x-3">
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="att_${st.id}" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                <span class="ml-2 text-sm font-medium text-slate-600 select-none peer-checked:text-emerald-600 transition" id="lbl_${st.id}">Present</span>
-              </label>
-            </div>`;
-          summaryHtml = `
-            <div class="flex items-center justify-end space-x-2 text-xs font-semibold">
-              <span class="bg-teal-50 text-teal-700 border border-teal-200 px-2 py-1 rounded">Total P: ${st.totalP}</span>
-              <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded">Month P: ${st.monthP}</span>
-            </div>`;
-        } else {
-          actionHtml = `
-            <div class="flex items-center justify-center space-x-2">
-              <button onclick="viewReport('${st.id}', '${st.name}')" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">View Report</button>
-              <button onclick="openSubmitModal('${st.id}', '${st.name}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">Submit Report</button>
-            </div>`;
-        }
-
-        const photoUrl = st.photo || "https://via.placeholder.com/150";
-
-        return `
-          <tr class="hover:bg-slate-50/70 transition">
-            <td class="px-6 py-4"><img src="${photoUrl}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm mx-auto"></td>
-            <td class="px-6 py-4">
-              <div class="font-bold text-slate-900">${st.name}</div>
-              <div class="text-xs text-slate-400 flex space-x-2 mt-0.5"><span>ID: ${st.id}</span></div>
-            </td>
-            <td class="px-6 py-4">${actionHtml}</td>
-            <td class="px-6 py-4 text-right">${summaryHtml}</td>
-          </tr>
-        `;
-      }).join('');
-
-      // हाजिरी वाले टॉगल बटन के टेक्स्ट को डायनामिक बदलना (Present/Absent)
-      if (currentTab === 'attendance') {
-        students.forEach(st => {
-          const chk = document.getElementById(`att_${st.id}`);
-          if(chk) {
-            chk.addEventListener('change', (e) => {
-              document.getElementById(`lbl_${st.id}`).innerText = e.target.checked ? "Present" : "Absent";
-              document.getElementById(`lbl_${st.id}`).className = e.target.checked ? "ml-2 text-sm font-medium text-emerald-600 select-none" : "ml-2 text-sm font-medium text-red-600 select-none";
-            });
-          }
-        });
-      }
-    }
-
-    // मोबाइल कार्ड लेआउट रेंडरर
-    function renderMobileCards(students) {
-      const container = document.getElementById("studentCardContainer");
-      if (students.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm">कोई छात्र सक्रिय नहीं मिला।</div>`;
-        return;
-      }
-
-      container.innerHTML = students.map(st => {
-        const photoUrl = st.photo || "https://via.placeholder.com/150";
-        let actionSection = "";
-
-        if (currentTab === 'attendance') {
-          actionSection = `
-            <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3">
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="m_att_${st.id}" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                <span class="ml-2 text-sm font-medium text-emerald-600 select-none" id="m_lbl_${st.id}">Present</span>
-              </label>
-              <div class="flex space-x-1 text-[11px] font-semibold">
-                <span class="bg-teal-50 text-teal-600 px-2 py-0.5 rounded border border-teal-100">Total P: ${st.totalP}</span>
-                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">Month P: ${st.monthP}</span>
-              </div>
-            </div>`;
-        } else {
-          actionSection = `
-            <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 mt-3">
-              <button onclick="viewReport('${st.id}', '${st.name}')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-xs font-semibold text-center border border-slate-200 transition">View Report</button>
-              <button onclick="openSubmitModal('${st.id}', '${st.name}')" class="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 py-2 rounded-lg text-xs font-semibold text-center border border-blue-200 transition">Submit Report</button>
-            </div>`;
-        }
-
-        return `
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-center space-x-3">
-              <img src="${photoUrl}" class="w-12 h-12 rounded-full object-cover border border-slate-200">
-              <div>
-                <h4 class="font-bold text-slate-900">${st.name}</h4>
-                <p class="text-xs text-slate-400">ID: ${st.id}</p>
-              </div>
-            </div>
-            ${actionSection}
-          </div>
-        `;
-      }).join('');
-
-      if (currentTab === 'attendance') {
-        students.forEach(st => {
-          const mChk = document.getElementById(`m_att_${st.id}`);
-          if(mChk) {
-            mChk.addEventListener('change', (e) => {
-              document.getElementById(`m_lbl_${st.id}`).innerText = e.target.checked ? "Present" : "Absent";
-              document.getElementById(`m_lbl_${st.id}).className = e.target.checked ? "ml-2 text-sm font-medium text-emerald-600" : "ml-2 text-sm font-medium text-red-600";
-            });
-          }
-        });
-      }
-    }
-
-    // अटेंडेंस सबमिट करने की प्रक्रिया
-function submitAllAttendance() {
-  const selClass = document.getElementById("classSelect").value;
-  const selSection = document.getElementById("sectionSelect").value;
-  
-  const filtered = globalData.students.filter(st => st.className.toString() === selClass && st.section.toString() === selSection);
-  if(filtered.length === 0) return alert("सबमिट करने के लिए कोई छात्र मौजूद नहीं है।");
-
-  const rawDate = document.getElementById('attDate').value; 
-  if(!rawDate) return alert("कृपया सही तारीख चुनें!");
-  
-  // 🛠️ तारीख का ब्लंडर फिक्स: बिना टाइमज़ोन गड़बड़ी के सटीक दिन और महीने का नाम निकालना
-  const dateParts = rawDate.split("-"); // [YYYY, MM, DD]
-  const year = parseInt(dateParts[0], 10);
-  const monthIdx = parseInt(dateParts[1], 10) - 1;
-  const day = parseInt(dateParts[2], 10); // यह सीधे वास्तविक दिन (जैसे 1, 5, 17) देगा बिना लीडिंग जीरो के
-
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const formattedDate = `${day}-${monthNames[monthIdx]}`; // बिल्कुल शीट जैसा बनेगा: "1-Apr" या "17-Jul"
-
-  const records = filtered.map(st => {
-    let isPresent = true;
-    if (window.innerWidth >= 768) {
-      isPresent = document.getElementById(`att_${st.id}`) ? document.getElementById(`att_${st.id}`).checked : true;
-    } else {
-      isPresent = document.getElementById(`m_att_${st.id}`) ? document.getElementById(`m_att_${st.id}`).checked : true;
-    }
-    return { studentId: st.id, status: isPresent ? "P" : "A" };
-  });
-
-  const payload = { action: "submitAttendance", date: formattedDate, records: records };
-
-  fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(res => {
-    if(res.status === "success") {
-      alert("हाजिरी सफलतापूर्वक दर्ज हो गई है!");
-      loadInitialData(); 
-    } else {
-      alert("त्रुटि: " + res.message);
-    }
-  })
-  .catch(err => alert("सबमिशन फेल: " + err));
-}
-
-    // एजुकेशनल हिस्ट्री मोडल कंट्रोल्स
-    function openSubmitModal(id, name) {
-      document.getElementById("modalStudentId").value = id;
-      document.getElementById("modalHeaderTitle").innerText = `${name} [ID: ${id}]`;
-      
-      // पुराने इनपुट रिसेट करना
-      document.getElementById("eduQ1").value = "";
-      document.getElementById("eduQ2").value = "";
-      document.getElementById("eduQ3").value = "";
-      document.getElementById("eduQ4").value = "";
-      document.getElementById("eduQ5").value = "";
-
-      document.getElementById("eduModal").classList.remove("hidden");
-    }
-
-    function closeModal() {
-      document.getElementById("eduModal").classList.add("hidden");
-    }
-
-    // एजुकेशनल हिस्ट्री रिपोर्ट सेल में अपेंड (Append) करना
-    function saveEducationalHistory() {
-      const id = document.getElementById("modalStudentId").value;
-      const answers = {
-        "Students reaction After teaching(Learning)": document.getElementById("eduQ1").value,
-        "Students reaction After teaching(Writing)": document.getElementById("eduQ2").value,
-        "Presence, cleanness(total)": document.getElementById("eduQ3").value,
-        "Study Material Availbity": document.getElementById("eduQ4").value,
-        "Reaction of Paret atfer knowing all about  Student": document.getElementById("eduQ5").value
-      };
-
-      const payload = { action: "submitEducationalHistory", studentId: id, answers: answers };
-
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        if(res.status === "success") {
-          alert("शैक्षणिक इतिहास सफलतापूर्वक सेल में अपेंड हो गया है!");
-          closeModal();
-        }
-      })
-      .catch(err => alert("त्रुटि: " + err));
-    }
-
-    // व्यू रिपोर्ट और A4 प्रिंट जेनरेशन
-    function viewReport(id, name) {
-      fetch(`${API_URL}?action=getEducationalHistory&studentId=${id}`)
-        .then(res => res.json())
-        .then(data => {
-          const report = data.report;
-          const printArea = document.getElementById("printArea");
-          
-          if (!report) {
-            alert("इस छात्र का कोई पुराना इतिहास नहीं मिला।");
-            return;
-          }
-
-          const fields = [
-            "Students reaction After teaching(Learning)",
-            "Students reaction After teaching(Writing)",
-            "Presence, cleanness(total)",
-            "Study Material Availbity",
-            "Reaction of Paret atfer knowing all about  Student"
-          ];
-
-          let historyTimelineHtml = "";
-          
-          // सेल के अंदर '\n' द्वारा विभक्त डेटा को कस्टमाइज़्ड टाइमलाइन रो बनाना
-          fields.forEach(field => {
-            if(report[field]) {
-              const logs = report[field].split("\n");
-              let logItems = logs.map(l => `<div class="bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-xs font-mono text-slate-700 mb-1.5 shadow-sm">${l}</div>`).join('');
-              
-              historyTimelineHtml += `
-                <div class="border border-slate-200 rounded-xl p-4 bg-white shadow-sm">
-                  <h4 class="text-sm font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1 uppercase tracking-wide">${field}</h4>
-                  <div>${logItems}</div>
-                </div>`;
-            }
-          });
-
-          // A4 प्रिंट फ्रेंडली HTML लेआउट तैयार करना
-          printArea.innerHTML = `
-            <div class="max-w-4xl mx-auto bg-white p-6">
-              <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
-                <div>
-                  <h1 class="text-2xl font-black text-slate-900 tracking-tight">Ambedkar Public School</h1>
-                  <p class="text-xs text-slate-500 font-medium">Madhopur, Campierganj - Gorakhpur</p>
-                </div>
-                <div class="text-right">
-                  <h2 class="text-lg font-bold text-slate-700">STUDENT REPORT CARD</h2>
-                  <p class="text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded font-semibold mt-1 inline-block">Session: ${globalData.session}</p>
-                </div>
-              </div>
-              
-              <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center space-x-4 mb-6">
-                <img src="${report["Student Photo Link (Drive)"] || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm">
-                <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                  <div><span class="text-slate-400 font-medium">Student Name:</span> <strong class="text-slate-800">${name}</strong></div>
-                  <div><span class="text-slate-400 font-medium">Student ID:</span> <strong class="text-slate-800">${id}</strong></div>
-                  <div><span class="text-slate-400 font-medium">Class:</span> <strong class="text-slate-800">${report["Current Class"]}</strong></div>
-                  <div><span class="text-slate-400 font-medium">Section:</span> <strong class="text-slate-800">${report["Section"]}</strong></div>
-                </div>
-              </div>
-
-              <div class="space-y-4">
-                <h3 class="text-base font-bold text-slate-900 border-l-4 border-blue-600 pl-2">Educational History Log</h3>
-                ${historyTimelineHtml || '<p class="text-sm text-slate-400">कोई डेटा उपलब्ध नहीं है।</p>'}
-              </div>
-
-              <div class="mt-12 pt-8 border-t border-dashed border-slate-300 flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider no-print">
-                <button onclick="window.print()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold shadow hover:bg-blue-700 transition">Print A4 Report</button>
-                <button onclick="closeReport()" class="bg-slate-200 text-slate-700 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-300 transition">Close Report</button>
-              </div>
-            </div>`;
-
-          // UI स्विच करके केवल प्रिंट एरिया दिखाना
-          document.querySelector('header').classList.add('hidden');
-          document.querySelector('main').classList.add('hidden');
-          printArea.classList.remove('hidden');
-        })
-        .catch(err => alert("इतिहास प्राप्त करने में विफलता: " + err));
-    }
-
-    function closeReport() {
-      document.getElementById("printArea").classList.add('hidden');
-      document.querySelector('header').classList.remove('hidden');
-      document.querySelector('main').classList.remove('hidden');
-    }
-  </script>
+  <!-- App JS -->
+  <script src="app.js"></script>
 </body>
 </html>
