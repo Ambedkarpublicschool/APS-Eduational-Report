@@ -331,49 +331,52 @@
     }
 
     // अटेंडेंस सबमिट करने की प्रक्रिया
-    function submitAllAttendance() {
-      const selClass = document.getElementById("classSelect").value;
-      const selSection = document.getElementById("sectionSelect").value;
-      
-      const filtered = globalData.students.filter(st => st.className.toString() === selClass && st.section.toString() === selSection);
-      if(filtered.length === 0) return alert("सबमिट करने के लिए कोई छात्र मौजूद नहीं है।");
+function submitAllAttendance() {
+  const selClass = document.getElementById("classSelect").value;
+  const selSection = document.getElementById("sectionSelect").value;
+  
+  const filtered = globalData.students.filter(st => st.className.toString() === selClass && st.section.toString() === selSection);
+  if(filtered.length === 0) return alert("सबमिट करने के लिए कोई छात्र मौजूद नहीं है।");
 
-      const rawDate = document.getElementById('attDate').value; // YYYY-MM-DD
-      if(!rawDate) return alert("कृपया सही तारीख चुनें!");
-      
-      // तारीख को शीट हेडर फॉर्मेट में बदलना (जैसे 17-07-2026 से 17-Jul बनाना)
-      const dateObj = new Date(rawDate);
-      const day = dateObj.getDate();
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const formattedDate = `${day}-${monthNames[dateObj.getMonth()]}`;
+  const rawDate = document.getElementById('attDate').value; 
+  if(!rawDate) return alert("कृपया सही तारीख चुनें!");
+  
+  // 🛠️ तारीख का ब्लंडर फिक्स: बिना टाइमज़ोन गड़बड़ी के सटीक दिन और महीने का नाम निकालना
+  const dateParts = rawDate.split("-"); // [YYYY, MM, DD]
+  const year = parseInt(dateParts[0], 10);
+  const monthIdx = parseInt(dateParts[1], 10) - 1;
+  const day = parseInt(dateParts[2], 10); // यह सीधे वास्तविक दिन (जैसे 1, 5, 17) देगा बिना लीडिंग जीरो के
 
-      const records = filtered.map(st => {
-        let isPresent = true;
-        if (window.innerWidth >= 768) {
-          isPresent = document.getElementById(`att_${st.id}`) ? document.getElementById(`att_${st.id}`).checked : true;
-        } else {
-          isPresent = document.getElementById(`m_att_${st.id}`) ? document.getElementById(`m_att_${st.id}`).checked : true;
-        }
-        return { studentId: st.id, status: isPresent ? "P" : "A" };
-      });
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const formattedDate = `${day}-${monthNames[monthIdx]}`; // बिल्कुल शीट जैसा बनेगा: "1-Apr" या "17-Jul"
 
-      const payload = { action: "submitAttendance", date: formattedDate, records: records };
-
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        if(res.status === "success") {
-          alert("हाजिरी सफलतापूर्वक दर्ज हो गई है!");
-          loadInitialData(); // लाइव री-फ्रेश काउंटर्स देखने के लिए
-        } else {
-          alert("त्रुटि: " + res.message);
-        }
-      })
-      .catch(err => alert("सबमिशन फेल: " + err));
+  const records = filtered.map(st => {
+    let isPresent = true;
+    if (window.innerWidth >= 768) {
+      isPresent = document.getElementById(`att_${st.id}`) ? document.getElementById(`att_${st.id}`).checked : true;
+    } else {
+      isPresent = document.getElementById(`m_att_${st.id}`) ? document.getElementById(`m_att_${st.id}`).checked : true;
     }
+    return { studentId: st.id, status: isPresent ? "P" : "A" };
+  });
+
+  const payload = { action: "submitAttendance", date: formattedDate, records: records };
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(res => {
+    if(res.status === "success") {
+      alert("हाजिरी सफलतापूर्वक दर्ज हो गई है!");
+      loadInitialData(); 
+    } else {
+      alert("त्रुटि: " + res.message);
+    }
+  })
+  .catch(err => alert("सबमिशन फेल: " + err));
+}
 
     // एजुकेशनल हिस्ट्री मोडल कंट्रोल्स
     function openSubmitModal(id, name) {
