@@ -50,10 +50,10 @@
             </div>
           </div>
 
-          <!-- Settings Button & API Status (Mobile/Desktop) -->
+          <!-- Settings Button & API Status (Updated for Live Sheets Setup) -->
           <div class="flex items-center gap-2">
-            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 cursor-pointer" title="Click to configure API URL">
-              <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>Demo Mode
+            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 cursor-pointer" title="Google Sheets Setup Active">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>Live Sheets Connected
             </div>
             <button id="btnSettings" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all shadow-sm" title="Configure Google Apps Script API URL">
               ⚙️
@@ -87,6 +87,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center gap-2">
             <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Session:</label>
             <select class="session-select bg-slate-800 text-indigo-300 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">All Sessions</option>
             </select>
           </div>
 
@@ -134,14 +135,14 @@
               </tr>
             </thead>
             <tbody id="attendanceTableBody" class="divide-y divide-slate-700/60 text-sm">
-              <!-- Dynamically populated -->
+              <!-- Dynamically populated from JS -->
             </tbody>
           </table>
         </div>
 
         <!-- Mobile Touch-Friendly Card View -->
         <div id="attendanceCardContainer" class="md:hidden grid grid-cols-1 gap-4">
-          <!-- Dynamically populated -->
+          <!-- Dynamically populated from JS -->
         </div>
 
         <!-- Bottom Submit Section -->
@@ -198,7 +199,7 @@
 
         <!-- Student Cards List -->
         <div id="historyListContainer" class="grid grid-cols-1 gap-4">
-          <!-- Dynamically populated -->
+          <!-- Dynamically populated from JS -->
         </div>
 
       </section>
@@ -218,9 +219,7 @@
       
       <!-- Modal Header -->
       <div class="px-6 py-5 bg-slate-900/90 border-b border-slate-700/80 flex items-center justify-between">
-        <div id="modalSubmitReportHeader">
-          <!-- Populated by JS: Student Name [ID] -->
-        </div>
+        <div id="modalSubmitReportHeader"></div>
         <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
       </div>
 
@@ -234,7 +233,7 @@
           <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
             1. Students reaction After teaching (Learning)
           </label>
-          <input type="text" id="reportLearning" placeholder="e.g. Excellent / Understood the chapter well / Needs practice" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="reportLearning" placeholder="e.g. Excellent / Understood the chapter well" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <!-- Question 2 -->
@@ -242,7 +241,7 @@
           <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
             2. Students reaction After teaching (Writing)
           </label>
-          <input type="text" id="reportWriting" placeholder="e.g. Neat handwriting / Completed notes / Fast and accurate" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="reportWriting" placeholder="e.g. Neat handwriting / Completed notes" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <!-- Question 3 -->
@@ -250,7 +249,7 @@
           <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
             3. Presence, cleanness (total)
           </label>
-          <input type="text" id="reportPresence" placeholder="e.g. Uniform well washed / Nails clipped / Punctual and clean" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="reportPresence" placeholder="e.g. Uniform well washed / Punctual" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <!-- Question 4 -->
@@ -258,7 +257,7 @@
           <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
             4. Study Material Availability
           </label>
-          <input type="text" id="reportMaterial" placeholder="e.g. All textbooks available / Geometry box and books complete" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="reportMaterial" placeholder="e.g. All textbooks available" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <!-- Question 5 -->
@@ -266,7 +265,7 @@
           <label class="block text-xs uppercase tracking-wider font-bold text-violet-300 mb-2">
             5. Reaction of Parent after knowing all about Student
           </label>
-          <textarea id="reportParent" rows="3" placeholder="e.g. Parent was very happy and satisfied with progress / Agreed to monitor daily studies at home" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+          <textarea id="reportParent" rows="3" placeholder="e.g. Parent was satisfied with progress" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
         </div>
 
         <!-- Form Submit & Cancel Buttons -->
@@ -283,11 +282,10 @@
     </div>
   </div>
 
-  <!-- ================= MODAL 2: VIEW REPORT (TIMELINE & PRINT) ================= -->
+  <!-- ================= MODAL 2: VIEW REPORT (TIMELINE) ================= -->
   <div id="modalTimelineReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md print-hide">
     <div class="glass-modal max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[92vh] flex flex-col">
       
-      <!-- Header with Close Button -->
       <div class="px-6 py-4 bg-slate-900/95 border-b border-slate-700/80 flex items-center justify-between">
         <h3 class="text-lg font-bold text-white flex items-center gap-2">
           <span>📑 Student Educational History & Evaluation Timeline</span>
@@ -295,12 +293,8 @@
         <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
       </div>
 
-      <!-- Timeline Scroll Area -->
-      <div id="modalTimelineContent" class="p-6 overflow-y-auto flex-1 space-y-6">
-        <!-- Populated by JS -->
-      </div>
+      <div id="modalTimelineContent" class="p-6 overflow-y-auto flex-1 space-y-6"></div>
 
-      <!-- Footer -->
       <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-700/80 flex justify-end">
         <button class="close-modal-btn px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm">
           Close
@@ -319,9 +313,9 @@
       </div>
       <div>
         <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">Web App URL (`doGet` & `doPost` endpoint)</label>
-        <input type="text" id="inputApiUrl" placeholder="https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec" class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="text" id="inputApiUrl" value="https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec" class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-          Deploy your <code class="text-indigo-300">Code.gs</code> as a Web App with access set to <strong class="text-white">"Anyone"</strong>, and paste the generated URL here. Leave empty to use Built-in Demo Mode.
+          Your Google Sheet deployment link is fully hardcoded. Changing this input manually will update session caches until the next reload.
         </p>
       </div>
       <div class="flex justify-end gap-3 pt-2">
