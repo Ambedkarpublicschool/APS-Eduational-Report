@@ -139,20 +139,36 @@
     });
 
     // बैकएंड से इनिशियल मास्टर डेटा लोड करना
-    function loadInitialData() {
-      fetch(`${API_URL}?action=getInitialData`)
-        .then(res => res.json())
-        .then(data => {
-          globalData = data;
-          document.getElementById("sessionBadge").innerText = `Session: ${data.session}`;
-          
-          populateDropdown("classSelect", data.classes);
-          populateDropdown("sectionSelect", data.sections);
-          
-          filterStudents();
-        })
-        .catch(err => alert("डेटा लोड करने में त्रुटि: " + err));
+function loadInitialData() {
+  console.log("Fetching data from:", API_URL);
+  
+  fetch(`${API_URL}?action=getInitialData`, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
     }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error("Network response was not ok: " + res.statusText);
+    }
+    return res.json();
+  })
+  .then(data => {
+    console.log("Data received successfully:", data);
+    globalData = data;
+    document.getElementById("sessionBadge").innerText = `Session: ${data.session}`;
+    
+    populateDropdown("classSelect", data.classes);
+    populateDropdown("sectionSelect", data.sections);
+    
+    filterStudents();
+  })
+  .catch(err => {
+    console.error("Fetch Error:", err);
+    alert("कनेक्शन एरर: वेब ऐप से डेटा नहीं मिल पा रहा है। कृपया जांचें कि Apps Script सही से डिप्लॉय हुआ है या नहीं।\nDetailed Error: " + err.message);
+  });
+}
 
     function populateDropdown(id, items) {
       const select = document.getElementById(id);
