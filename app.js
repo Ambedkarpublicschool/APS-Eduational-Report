@@ -57,7 +57,7 @@ A state-of-the-art, glassmorphism-themed responsive web application built with H
 4. Select **Web app**:
    - **Execute as:** `Me (your email)`
    - **Who has access:** `Anyone`
-5. Click **Deploy** and copy the **Web App URL** (`https://script.google.com/macros/s/.../exec`).
+5. Click **Deploy** and copy the **Web App URL** (`https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec`).
 
 ### Step 3: GitHub Pages Hosting
 1. Upload `index.html`, `style.css`, and `app.js` to your GitHub repository.
