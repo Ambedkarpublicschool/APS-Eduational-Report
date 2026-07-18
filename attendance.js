@@ -282,3 +282,21 @@ function refreshAttendance() {
     loadAttendance();
 
 }
+
+
+async function loadClasses(){
+
+    const classes = await getClasses();
+
+    const select = document.getElementById("class");
+
+    select.innerHTML = '<option value="">All Classes</option>';
+
+    classes.forEach(cls=>{
+
+        select.innerHTML += `<option value="${cls}">${cls}</option>`;
+
+    });
+
+}
+
