@@ -114,19 +114,7 @@ function renderAttendance(){
 
     });
 
-    html +=
 
-    `<br>
-
-    <button
-
-        class="btn btn-success"
-
-        onclick="submitAttendanceData()">
-
-        Submit Attendance
-
-    </button>`;
 
     container.innerHTML = html;
 
