@@ -1,174 +1,130 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
- * 📋 Student Attendance & Educational History Management System
- * Fully Synchronized & Fail-Safe Dynamic Filters Bound
+ * Fully Synchronized Dynamic Filter Engine
  */
 
-// ==========================================================================
-// ⚙️ GLOBAL CONFIGURATION
-// ==========================================================================
 const API_URL = "https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec";
 const IS_DEMO_MODE = false; 
 
-// ==========================================================================
-// ⚡ INITIALIZATION & STATE MANAGEMENT
-// ==========================================================================
 let studentDatabase = [];
 let currentModule = 'attendance';
+let hasUserSelectedSession = false; // ट्रैक करने के लिए कि यूजर ने मैन्युअली सत्र बदला है या नहीं
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("⚡ System Initialized connecting to:", API_URL);
-    
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
-        // यह लोकल टाइमज़ोन के हिसाब से बिल्कुल सही YYYY-MM-DD तारीख सेट करेगा
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-        const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
-        dateInput.value = localISOTime;
+        dateInput.value = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
     }
-    
-    initApp();
-});
-
-function initApp() {
-    updateApiStatusBadge();
     setupEventListeners();
     fetchStudentData();
-}
+});
 
 function updateApiStatusBadge() {
     const badge = document.getElementById("apiStatusBadge");
     if (badge) {
-        if (IS_DEMO_MODE || !API_URL) {
-            badge.className = "text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 cursor-pointer";
-            badge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>Demo Mode';
-        } else {
-            badge.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 cursor-pointer";
-            badge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>Live Sheets Connected';
-        }
+        badge.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+        badge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>Live Sheets Connected';
     }
 }
 
-// ==========================================================================
-// 📥 FETCH DATA FROM GOOGLE SHEETS (`doGet`)
-// ==========================================================================
 async function fetchStudentData() {
     showSpinner(true);
-    
-    if (IS_DEMO_MODE || !API_URL) {
-        showSpinner(false);
-        return;
-    }
-
     try {
         const dateInput = document.getElementById("attendanceDateInput")?.value || "";
         let formattedDate = "";
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            formattedDate = `${d.getDate()}-${months[d.getMonth()]}`;
+            // महत्वपूर्ण फिक्स: शीट हेडर मैच के लिए सिंगल डिजिट (e.g., 5-Apr) फॉर्मेट
+            formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        // बैकएंड को सत्र की गणना स्वचालित रूप से संभालने दें
-        const urlWithParams = `${API_URL}?action=getStudents&date=${formattedDate}`;
-        const response = await fetch(urlWithParams);
-        if (!response.ok) throw new Error("Network response was not ok");
-        
+        const selectedSession = document.querySelector(".session-select")?.value || "";
+        const sessionParam = (selectedSession && selectedSession !== "ALL") ? `&session=${selectedSession}` : "";
+
+        const response = await fetch(`${API_URL}?action=getStudents&date=${formattedDate}${sessionParam}`);
         const resObject = await response.json();
         
         if (resObject.status === "success" && resObject.data) {
             studentDatabase = resObject.data;
-            console.log("📊 Live Sheet Data Loaded:", studentDatabase);
+            updateApiStatusBadge();
             
-            // डेटा मिलते ही सबसे पहले ड्रॉपडाउन फ़िल्टर्स को अपडेट करें
-            populateDynamicFilters();
+            // केवल पहली बार लोड होने पर ड्रॉपडाउन फ़िल्टर्स को डायनामिकली भरें
+            if (!hasUserSelectedSession) {
+                populateDynamicFilters();
+            }
             
-            // डेटा ग्रिड रेंडर करें
             renderAttendanceModule();
             renderHistoryModule();
-            showToast("✅ Google Sheets data loaded successfully!");
-        } else {
-            throw new Error(resObject.message || "Unknown error from server");
         }
     } catch (error) {
-        console.error("❌ Error fetching sheets data:", error);
-        showToast("❌ Failed to connect with Google Sheets!", true);
+        console.error("❌ Fetch Error:", error);
+        showToast("❌ Connection error with Google Sheets!", true);
     } finally {
         showSpinner(false);
     }
 }
 
-// ==========================================================================
-// 🔍 DYNAMIC FILTER POPULATION (FIXED LOGIC)
-// ==========================================================================
 function populateDynamicFilters() {
-    if (!studentDatabase || studentDatabase.length === 0) return;
+    if (!studentDatabase.length) return;
 
-    // डेटा सोर्स से यूनीक क्लास, सेक्शन और सत्र निकालें
-    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))];
+    // शीट से लाइव यूनीक सत्र, क्लासेस और सेक्शन्स निकालना
+    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort();
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // 1. सेशन्स ड्रॉपडाउन अपडेट करें
+    // सत्र ड्रॉपडाउन लोड करना
     document.querySelectorAll(".session-select").forEach(select => {
-        if (sessions.length > 0) {
-            select.innerHTML = sessions.map(sess => `<option value="${sess}">${sess}</option>`).join('');
-        } else {
-            select.innerHTML = '<option value="ALL">All Sessions</option>';
+        let options = '<option value="ALL">All Sessions</option>';
+        sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
+        select.innerHTML = options;
+        if (sessions.length > 0 && select.value === "ALL") {
+            select.value = sessions[0]; // डिफ़ॉल्ट रूप से पहला लाइव सत्र चुनें
         }
     });
 
-    // 2. क्लास फ़िल्टर्स अपडेट करें (अटेंडेंस और हिस्ट्री दोनों के लिए)
-    const classFilters = ["attFilterClass", "histFilterClass"];
-    classFilters.forEach(id => {
+    // क्लास ड्रॉपडाउन लोड करना
+    ["attFilterClass", "histFilterClass"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            let optionsHtml = '<option value="ALL">All Classes</option>';
-            classes.forEach(cls => {
-                optionsHtml += `<option value="${cls}">${cls}</option>`;
-            });
-            select.innerHTML = optionsHtml;
+            let options = '<option value="ALL">All Classes</option>';
+            classes.forEach(c => { options += `<option value="${c}">${c}</option>`; });
+            select.innerHTML = options;
         }
     });
 
-    // 3. सेक्शन फ़िल्टर्स अपडेट करें
-    const sectionFilters = ["attFilterSection", "histFilterSection"];
-    sectionFilters.forEach(id => {
+    // सेक्शन ड्रॉपडाउन लोड करना
+    ["attFilterSection", "histFilterSection"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            let optionsHtml = '<option value="ALL">All Sections</option>';
-            sections.forEach(sec => {
-                optionsHtml += `<option value="${sec}">${sec}</option>`;
-            });
-            select.innerHTML = optionsHtml;
+            let options = '<option value="ALL">All Sections</option>';
+            sections.forEach(s => { options += `<option value="${s}">${s}</option>`; });
+            select.innerHTML = options;
         }
     });
 }
 
-// ==========================================================================
-// 🎨 ATTENDANCE MODULE RENDERER
-// ==========================================================================
 function renderAttendanceModule() {
     const tableBody = document.getElementById("attendanceTableBody");
     const cardContainer = document.getElementById("attendanceCardContainer");
-    
     if (!tableBody || !cardContainer) return;
 
+    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
     const selectedClass = document.getElementById("attFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("attFilterSection")?.value || "ALL";
 
     const filteredData = studentDatabase.filter(student => {
+        const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         const sectionMatch = selectedSection === "ALL" || student.section === selectedSection;
-        return classMatch && sectionMatch;
+        return sessionMatch && classMatch && sectionMatch;
     });
 
-    // 1. PC Table View
     let tableHtml = "";
     filteredData.forEach(student => {
         const isPresent = student.attendanceStatus === "P";
         const isAbsent = student.attendanceStatus === "A";
-        
         tableHtml += `
             <tr class="border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors">
                 <td class="p-4 font-mono font-bold text-indigo-400">${student.studentId}</td>
@@ -182,22 +138,19 @@ function renderAttendanceModule() {
                 <td class="p-4 text-center font-bold text-emerald-400">${student.totalPresent}</td>
                 <td class="p-4 text-center font-bold text-teal-400">${student.monthPresent}</td>
                 <td class="p-4 text-center">
-                    <div class="inline-flex rounded-xl bg-slate-900/80 p-1 border border-slate-700/60" data-sid="${student.studentId}">
+                    <div class="inline-flex rounded-xl bg-slate-900/80 p-1 border border-slate-700/60">
                         <button onclick="markLocalStatus('${student.studentId}', 'P')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isPresent ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}">P</button>
                         <button onclick="markLocalStatus('${student.studentId}', 'A')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isAbsent ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}">A</button>
                     </div>
                 </td>
-            </tr>
-        `;
+            </tr>`;
     });
     tableBody.innerHTML = tableHtml || `<tr><td colspan="5" class="p-8 text-center text-slate-500">No active students found matching filters.</td></tr>`;
 
-    // 2. Mobile Card View
     let cardsHtml = "";
     filteredData.forEach(student => {
         const isPresent = student.attendanceStatus === "P";
         const isAbsent = student.attendanceStatus === "A";
-        
         cardsHtml += `
             <div class="glass-panel p-4 rounded-2xl border border-slate-700/50 space-y-4">
                 <div class="flex items-center gap-3">
@@ -216,8 +169,7 @@ function renderAttendanceModule() {
                     <button onclick="markLocalStatus('${student.studentId}', 'P')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all ${isPresent ? 'bg-emerald-600 text-white' : 'text-slate-400'}">Present (P)</button>
                     <button onclick="markLocalStatus('${student.studentId}', 'A')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all ${isAbsent ? 'bg-rose-600 text-white' : 'text-slate-400'}">Absent (A)</button>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
     cardContainer.innerHTML = cardsHtml || `<div class="p-4 text-center text-slate-500">No active students available.</div>`;
 }
@@ -230,22 +182,21 @@ window.markLocalStatus = (studentId, status) => {
     }
 };
 
-// ==========================================================================
-// 📊 EDUCATIONAL HISTORY MODULE RENDERER
-// ==========================================================================
 function renderHistoryModule() {
     const container = document.getElementById("historyListContainer");
     if (!container) return;
 
+    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
     const searchVal = document.getElementById("historySearchInput")?.value.toLowerCase() || "";
     const selectedClass = document.getElementById("histFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("histFilterSection")?.value || "ALL";
 
     const filteredData = studentDatabase.filter(student => {
+        const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
         const nameMatch = student.studentName.toLowerCase().includes(searchVal) || student.studentId.toLowerCase().includes(searchVal);
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         const sectionMatch = selectedSection === "ALL" || student.section === selectedSection;
-        return nameMatch && classMatch && sectionMatch;
+        return sessionMatch && nameMatch && classMatch && sectionMatch;
     });
 
     let html = "";
@@ -264,21 +215,14 @@ function renderHistoryModule() {
                     <button onclick="openEvaluationModal('${student.studentId}')" class="flex-1 md:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-all">📝 Submit Report</button>
                     <button onclick="openTimelineModal('${student.studentId}')" class="flex-1 md:flex-none px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all">📊 View History</button>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
     container.innerHTML = html || `<div class="p-8 text-center text-slate-500">No records found.</div>`;
 }
 
-// ==========================================================================
-// 📤 POST SUBMISSIONS
-// ==========================================================================
 async function submitAttendance() {
     const selectedDate = document.getElementById("attendanceDateInput")?.value || "";
-    if (!selectedDate) {
-        showToast("❌ Please select a valid attendance date first!", true);
-        return;
-    }
+    if (!selectedDate) return showToast("❌ Select a valid date first!", true);
 
     const d = new Date(selectedDate);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -286,17 +230,9 @@ async function submitAttendance() {
 
     const markedRecords = studentDatabase
         .filter(s => s.attendanceStatus === "P" || s.attendanceStatus === "A")
-        .map(s => ({
-            studentId: s.studentId,
-            session: s.session,
-            date: formattedDate,
-            status: s.attendanceStatus
-        }));
+        .map(s => ({ studentId: s.studentId, session: s.session, date: formattedDate, status: s.attendanceStatus }));
 
-    if (markedRecords.length === 0) {
-        showToast("⚠️ No attendance modifications detected to save.", true);
-        return;
-    }
+    if (!markedRecords.length) return showToast("⚠️ No modifications to save.", true);
 
     showSpinner(true);
     try {
@@ -306,22 +242,28 @@ async function submitAttendance() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'markAttendance', records: markedRecords })
         });
-        showToast("🚀 Attendance saved & synchronizing with Sheets!");
+        showToast("🚀 Attendance synchronized with Sheet!");
         setTimeout(fetchStudentData, 1500);
     } catch (error) {
-        showToast("❌ Attendance save failed!", true);
+        showToast("❌ Save failed!", true);
     } finally {
         showSpinner(false);
     }
 }
 
-// ==========================================================================
-// 🎨 EVENT LISTENERS & MODALS LOGIC
-// ==========================================================================
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
     
-    // फ़िल्टर्स पर लाइव लिसनर बाइंडिंग
+    // सत्र परिवर्तन होने पर लाइव री-फेचिंग
+    document.querySelectorAll(".session-select").forEach(select => {
+        select.addEventListener("change", (e) => {
+            hasUserSelectedSession = true; 
+            // दोनों सत्र सिलेक्टर्स को सिंक में रखें
+            document.querySelectorAll(".session-select").forEach(el => el.value = e.target.value);
+            fetchStudentData();
+        });
+    });
+
     document.getElementById("attFilterClass")?.addEventListener("change", renderAttendanceModule);
     document.getElementById("attFilterSection")?.addEventListener("change", renderAttendanceModule);
     document.getElementById("attendanceDateInput")?.addEventListener("change", fetchStudentData);
@@ -361,12 +303,12 @@ function setupEventListeners() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            showToast("💾 Report submitted and log appended!");
+            showToast("💾 Log appended successfully!");
             document.getElementById("submitReportForm").reset();
             document.getElementById("modalSubmitReport").classList.add("hidden");
             setTimeout(fetchStudentData, 1500);
         } catch (err) {
-            showToast("❌ Failed to append evaluation log.", true);
+            showToast("❌ Save failed.", true);
         } finally {
             showSpinner(false);
         }
@@ -376,14 +318,11 @@ function setupEventListeners() {
 window.openEvaluationModal = (studentId) => {
     const student = studentDatabase.find(s => s.studentId === studentId);
     if (!student) return;
-
     document.getElementById("modalSubmitReportHeader").innerHTML = `
         <h3 class="text-lg font-bold text-white">📝 Evaluate: ${student.studentName}</h3>
-        <p class="text-xs text-slate-400">Student ID: ${student.studentId} | Class: ${student.currentClass}</p>
-    `;
+        <p class="text-xs text-slate-400">ID: ${student.studentId} | Class: ${student.currentClass}</p>`;
     document.getElementById("reportStudentId").value = student.studentId;
     document.getElementById("reportStudentSession").value = student.session;
-    
     toggleModal("modalSubmitReport", true);
 };
 
@@ -393,9 +332,8 @@ window.openTimelineModal = (studentId) => {
 
     const contentArea = document.getElementById("modalTimelineContent");
     const h = student.history || {};
-
     const parseLogs = (logString) => {
-        if (!logString) return ['<p class="text-xs text-slate-500 italic">No historical log recorded.</p>'];
+        if (!logString) return ['<p class="text-xs text-slate-500 italic">No log recorded.</p>'];
         return logString.split('\n').reverse().map(log => `<div class="bg-slate-900/40 border border-slate-800 p-3 rounded-xl font-mono text-xs text-indigo-300">${log}</div>`);
     };
 
@@ -413,9 +351,7 @@ window.openTimelineModal = (studentId) => {
             <div><label class="text-xs uppercase font-bold text-slate-400 tracking-wider">3. Hygiene & Presence Log</label><div class="space-y-1.5 mt-1">${parseLogs(h.presenceCleanness).join('')}</div></div>
             <div><label class="text-xs uppercase font-bold text-slate-400 tracking-wider">4. Material Availability Log</label><div class="space-y-1.5 mt-1">${parseLogs(h.studyMaterial).join('')}</div></div>
             <div><label class="text-xs uppercase font-bold text-slate-400 tracking-wider">5. Parent Feedback Log</label><div class="space-y-1.5 mt-1">${parseLogs(h.parentReaction).join('')}</div></div>
-        </div>
-    `;
-
+        </div>`;
     toggleModal("modalTimelineReport", true);
 };
 
@@ -455,7 +391,5 @@ function showToast(message, isError = false) {
     toast.innerText = message;
     toast.className = `fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all transform duration-300 z-50 print-hide ${isError ? 'bg-rose-600 text-white' : 'bg-indigo-600 text-white'}`;
     toast.classList.remove("translate-y-20", "opacity-0");
-    setTimeout(() => {
-        toast.classList.add("translate-y-20", "opacity-0");
-    }, 4000);
+    setTimeout(() => { toast.classList.add("translate-y-20", "opacity-0"); }, 4000);
 }
