@@ -18,11 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initializeAttendance() {
 
-    loadCurrentSession();
+ loadCurrentSession();
 
-    await loadAttendance();
+await loadClasses();
 
-    attachEvents();
+await loadSections();
+
+await loadAttendance();
+
+attachEvents();
 
 }
 
