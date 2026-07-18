@@ -39,8 +39,9 @@ async function fetchStudentData() {
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        const selectedSession = document.querySelector(".session-select")?.value || "";
-        const sessionParam = (selectedSession && selectedSession !== "ALL") ? `&session=${selectedSession}` : "";
+        // डिफ़ॉल्ट रूप से ऑल सेशन हटाने के लिए सीधे करंट सेशन '2026-2027' पास कर रहे हैं
+        const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
+        const sessionParam = (selectedSession && selectedSession !== "ALL") ? `&session=${selectedSession}` : "&session=2026-2027";
 
         const response = await fetch(`${API_URL}?action=getStudents&date=${formattedDate}${sessionParam}`);
         const resObject = await response.json();
@@ -75,7 +76,11 @@ function populateDynamicFilters() {
         let options = '<option value="ALL">All Sessions</option>';
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
         select.innerHTML = options;
-        if (sessions.length > 0 && select.value === "ALL") {
+        
+        // ऑल सेशन्स की जगह डिफ़ॉल्ट रूप से 2026-2027 सेलेक्ट करने का फिक्स
+        if (sessions.includes("2026-2027")) {
+            select.value = "2026-2027";
+        } else if (sessions.length > 0) {
             select.value = sessions[0];
         }
     });
@@ -104,7 +109,7 @@ function renderAttendanceModule() {
     const cardContainer = document.getElementById("attendanceCardContainer");
     if (!tableBody || !cardContainer) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
+    const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
     const selectedClass = document.getElementById("attFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("attFilterSection")?.value || "ALL";
 
@@ -147,7 +152,7 @@ function renderAttendanceModule() {
         const isAbsent = student.attendanceStatus === "A";
         cardsHtml += `
             <div class="glass-panel p-4 rounded-2xl border border-slate-700/50 space-y-4">
-                <div class="flex items-center gap-3">
+                <div class="flex item-center gap-3">
                     <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-xl object-cover border border-slate-600" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="flex-1">
                         <div class="text-xs font-mono text-indigo-400 font-bold">${student.studentId}</div>
@@ -176,11 +181,14 @@ window.markLocalStatus = (studentId, status) => {
     }
 };
 
+// ==========================================================================
+// 📊 EDUCATIONAL HISTORY MODULE RENDERER
+// ==========================================================================
 function renderHistoryModule() {
     const container = document.getElementById("historyListContainer");
     if (!container) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
+    const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
     const searchVal = document.getElementById("historySearchInput")?.value.toLowerCase() || "";
     const selectedClass = document.getElementById("histFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("histFilterSection")?.value || "ALL";
