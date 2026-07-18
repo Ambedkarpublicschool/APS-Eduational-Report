@@ -1,7 +1,7 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
- * Backend Connected & Dynamic Filter Synchronized
+ * Fully Synchronized & Fail-Safe Dynamic Filters Bound
  */
 
 // ==========================================================================
@@ -60,7 +60,6 @@ async function fetchStudentData() {
     }
 
     try {
-        // ऐप्स स्क्रिप्ट को तारीख भेजकर डेटा मंगवाएं
         const dateInput = document.getElementById("attendanceDateInput")?.value || "";
         let formattedDate = "";
         if (dateInput) {
@@ -69,6 +68,7 @@ async function fetchStudentData() {
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`;
         }
         
+        // बैकएंड को सत्र की गणना स्वचालित रूप से संभालने दें
         const urlWithParams = `${API_URL}?action=getStudents&date=${formattedDate}`;
         const response = await fetch(urlWithParams);
         if (!response.ok) throw new Error("Network response was not ok");
@@ -79,7 +79,7 @@ async function fetchStudentData() {
             studentDatabase = resObject.data;
             console.log("📊 Live Sheet Data Loaded:", studentDatabase);
             
-            // डेटा के आधार पर फिल्टर्स (Session, Class) को लाइव अपडेट करें
+            // डेटा मिलते ही सबसे पहले ड्रॉपडाउन फ़िल्टर्स को अपडेट करें
             populateDynamicFilters();
             
             // डेटा ग्रिड रेंडर करें
@@ -98,18 +98,26 @@ async function fetchStudentData() {
 }
 
 // ==========================================================================
-// 🔍 DYNAMIC FILTER POPULATION
+// 🔍 DYNAMIC FILTER POPULATION (FIXED LOGIC)
 // ==========================================================================
 function populateDynamicFilters() {
-    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))];
-    const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))];
+    if (!studentDatabase || studentDatabase.length === 0) return;
 
-    // सेशन्स ड्रॉपडाउन अपडेट करें
+    // डेटा सोर्स से यूनीक क्लास, सेक्शन और सत्र निकालें
+    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))];
+    const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
+    const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
+
+    // 1. सेशन्स ड्रॉपडाउन अपडेट करें
     document.querySelectorAll(".session-select").forEach(select => {
-        select.innerHTML = sessions.map(sess => `<option value="${sess}">${sess}</option>`).join('');
+        if (sessions.length > 0) {
+            select.innerHTML = sessions.map(sess => `<option value="${sess}">${sess}</option>`).join('');
+        } else {
+            select.innerHTML = '<option value="ALL">All Sessions</option>';
+        }
     });
 
-    // क्लासेस ड्रॉपडाउन अपडेट करें (क्लास 9, 10 आदि)
+    // 2. क्लास फ़िल्टर्स अपडेट करें (अटेंडेंस और हिस्ट्री दोनों के लिए)
     const classFilters = ["attFilterClass", "histFilterClass"];
     classFilters.forEach(id => {
         const select = document.getElementById(id);
@@ -117,6 +125,19 @@ function populateDynamicFilters() {
             let optionsHtml = '<option value="ALL">All Classes</option>';
             classes.forEach(cls => {
                 optionsHtml += `<option value="${cls}">${cls}</option>`;
+            });
+            select.innerHTML = optionsHtml;
+        }
+    });
+
+    // 3. सेक्शन फ़िल्टर्स अपडेट करें
+    const sectionFilters = ["attFilterSection", "histFilterSection"];
+    sectionFilters.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            let optionsHtml = '<option value="ALL">All Sections</option>';
+            sections.forEach(sec => {
+                optionsHtml += `<option value="${sec}">${sec}</option>`;
             });
             select.innerHTML = optionsHtml;
         }
@@ -132,18 +153,16 @@ function renderAttendanceModule() {
     
     if (!tableBody || !cardContainer) return;
 
-    // फ़िल्टर वैल्यूज प्राप्त करें
     const selectedClass = document.getElementById("attFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("attFilterSection")?.value || "ALL";
 
-    // डेटा को फ़िल्टर करें
     const filteredData = studentDatabase.filter(student => {
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         const sectionMatch = selectedSection === "ALL" || student.section === selectedSection;
         return classMatch && sectionMatch;
     });
 
-    // 1. PC Table View रेंडर करें
+    // 1. PC Table View
     let tableHtml = "";
     filteredData.forEach(student => {
         const isPresent = student.attendanceStatus === "P";
@@ -172,7 +191,7 @@ function renderAttendanceModule() {
     });
     tableBody.innerHTML = tableHtml || `<tr><td colspan="5" class="p-8 text-center text-slate-500">No active students found matching filters.</td></tr>`;
 
-    // 2. Mobile Card View रेंडर करें
+    // 2. Mobile Card View
     let cardsHtml = "";
     filteredData.forEach(student => {
         const isPresent = student.attendanceStatus === "P";
@@ -181,7 +200,7 @@ function renderAttendanceModule() {
         cardsHtml += `
             <div class="glass-panel p-4 rounded-2xl border border-slate-700/50 space-y-4">
                 <div class="flex items-center gap-3">
-                    <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-xl object-cover border border-slate-600">
+                    <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-xl object-cover border border-slate-600" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="flex-1">
                         <div class="text-xs font-mono text-indigo-400 font-bold">${student.studentId}</div>
                         <div class="font-bold text-white">${student.studentName}</div>
@@ -233,7 +252,7 @@ function renderHistoryModule() {
         html += `
             <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-slate-700/60">
                 <div class="flex items-center gap-4">
-                    <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-14 h-14 rounded-2xl object-cover border border-slate-600">
+                    <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-14 h-14 rounded-2xl object-cover border border-slate-600" onerror="this.src='https://via.placeholder.com/150'">
                     <div>
                         <span class="text-xs font-mono font-bold text-indigo-400">${student.studentId}</span>
                         <h3 class="font-bold text-white text-base">${student.studentName}</h3>
@@ -287,7 +306,7 @@ async function submitAttendance() {
             body: JSON.stringify({ action: 'markAttendance', records: markedRecords })
         });
         showToast("🚀 Attendance saved & synchronizing with Sheets!");
-        setTimeout(fetchStudentData, 1500); // 1.5 सेकंड बाद फ्रेश डेटा री-लोड करें
+        setTimeout(fetchStudentData, 1500);
     } catch (error) {
         showToast("❌ Attendance save failed!", true);
     } finally {
@@ -301,20 +320,18 @@ async function submitAttendance() {
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
     
-    // फ़िल्टर्स पर लाइव लिसनर जोड़ें
+    // फ़िल्टर्स पर लाइव लिसनर बाइंडिंग
     document.getElementById("attFilterClass")?.addEventListener("change", renderAttendanceModule);
     document.getElementById("attFilterSection")?.addEventListener("change", renderAttendanceModule);
-    document.getElementById("attendanceDateInput")?.addEventListener("change", fetchStudentData); // डेट चेंज होते ही डेटा री-फेच हो
+    document.getElementById("attendanceDateInput")?.addEventListener("change", fetchStudentData);
     
     document.getElementById("historySearchInput")?.addEventListener("input", renderHistoryModule);
     document.getElementById("histFilterClass")?.addEventListener("change", renderHistoryModule);
     document.getElementById("histFilterSection")?.addEventListener("change", renderHistoryModule);
 
-    // टैब टॉगलिंग
     document.getElementById("tabAttendance")?.addEventListener("click", () => switchModule('attendance'));
     document.getElementById("tabHistory")?.addEventListener("click", () => switchModule('history'));
 
-    // क्लोज मॉडल्स बटन वर्किंग
     document.querySelectorAll(".close-modal-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const modal = e.target.closest(".fixed-modal");
@@ -322,7 +339,6 @@ function setupEventListeners() {
         });
     });
 
-    // रिपोर्ट फॉर्म सबमिशन हैंडलर
     document.getElementById("submitReportForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const payload = {
@@ -377,7 +393,6 @@ window.openTimelineModal = (studentId) => {
     const contentArea = document.getElementById("modalTimelineContent");
     const h = student.history || {};
 
-    // ऐप्स स्क्रिप्ट के \n स्ट्रक्चर लॉग को ब्यूटीफुल टाइमलाइन कार्ड्स में ब्रेक करें
     const parseLogs = (logString) => {
         if (!logString) return ['<p class="text-xs text-slate-500 italic">No historical log recorded.</p>'];
         return logString.split('\n').reverse().map(log => `<div class="bg-slate-900/40 border border-slate-800 p-3 rounded-xl font-mono text-xs text-indigo-300">${log}</div>`);
@@ -385,7 +400,7 @@ window.openTimelineModal = (studentId) => {
 
     contentArea.innerHTML = `
         <div class="flex items-center gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-            <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-xl object-cover border border-slate-700">
+            <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-xl object-cover border border-slate-700" onerror="this.src='https://via.placeholder.com/150'">
             <div>
                 <h2 class="text-xl font-bold text-white">${student.studentName}</h2>
                 <p class="text-xs text-slate-400">ID: ${student.studentId} | Class: ${student.currentClass} - ${student.section}</p>
