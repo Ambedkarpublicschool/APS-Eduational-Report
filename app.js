@@ -1,24 +1,25 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
+ * 100% Fail-Safe DOM Binding & Live Dynamic Filter Engine
  */
 
 // ==========================================================================
 // ⚙️ GLOBAL CONFIGURATION
 // ==========================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxgcHiS4n0ygB1gcHoGj6jbb14YQCB5fKSI9-iyCl4Z1qOzxOXAwM35fwYCfFg79C69TA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwZKDQMYVKuDTEC-OczhkHB4H105QHtRMI_cPWZCa3WcYJPIAa9kCb2gKfD6m--9Dw2ug/exec";
 const IS_DEMO_MODE = false; 
 
 let studentDatabase = [];
 let currentModule = 'attendance';
 
 // ==========================================================================
-// ⚡ INITIALIZATION (तारीख और सत्र को तुरंत जबरदस्ती लोड करना)
+// ⚡ DOM READY INITIALIZER (जबरदस्ती तारीख और फ़िल्टर्स बाइंड करना)
 // ==========================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("⚡ System Initialized connecting to:", API_URL);
+function initSystem() {
+    console.log("⚡ DOM Fully Loaded. Initializing APS Engine...");
     
-    // आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में डिफ़ॉल्ट सेट करें
+    // 1. आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में ऑटो-सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
         const today = new Date();
@@ -26,11 +27,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         dateInput.value = `${yyyy}-${mm}-${dd}`;
+        console.log("📅 Default Date Set Successfully:", dateInput.value);
+    } else {
+        console.error("❌ Critical Error: attendanceDateInput element not found in DOM!");
     }
     
+    // 2. इवेंट लिसनर्स बाइंड करें
     setupEventListeners();
-    fetchStudentData(); 
-});
+    
+    // 3. शीट से डेटा फ़ेच करें
+    fetchStudentData();
+}
+
+// यह सुनिश्चित करेगा कि जब तक पूरा HTML लोड न हो जाए, जावास्क्रिप्ट रन न हो
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    initSystem();
+} else {
+    document.addEventListener("DOMContentLoaded", initSystem);
+}
 
 function updateApiStatusBadge() {
     const badge = document.getElementById("apiStatusBadge");
@@ -48,10 +62,10 @@ async function fetchStudentData() {
     try {
         const dateInput = document.getElementById("attendanceDateInput")?.value;
         let formattedDate = "";
+        
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            // बिना 0 के सिंगल डिजिट डे फ़ॉर्मेटिंग (e.g., 5-Jul)
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         } else {
             const d = new Date();
@@ -59,24 +73,28 @@ async function fetchStudentData() {
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`;
         }
         
-        // सभी सत्रों का डेटा मंगाएं ताकि फ़िल्टर शीट से लाइव काम कर सके
+        // बिना सत्र फ़िल्टर के सीधे ऑल डेटा हिट करेंगे ताकि सब कुछ लाइव आ सके
         let url = `${API_URL}?action=getStudents&date=${formattedDate}&session=ALL`;
+        console.log("📡 Connecting to Apps Script via:", url);
 
         const response = await fetch(url);
         const resObject = await response.json();
         
         if (resObject.status === "success" && resObject.data) {
             studentDatabase = resObject.data;
+            console.log("📊 Raw Sheet Data Received:", studentDatabase);
             updateApiStatusBadge();
             
-            // डेटा लोड होते ही ड्रॉपडाउन फ़िल्टर्स को लाइव शीट डेटा से पॉप्युलेट करें
+            // डेटा आते ही तुरंत ड्रॉपडाउन फ़िल्टर्स को लाइव शीट डेटा से पॉप्युलेट करें
             populateDynamicFilters();
             
             renderAttendanceModule();
             renderHistoryModule();
+        } else {
+            console.error("⚠️ Server responded but status was not success:", resObject);
         }
     } catch (error) {
-        console.error("❌ Fetch Error:", error);
+        console.error("❌ Fetch Error or Network Failure:", error);
         showToast("❌ Connection error with Google Sheets!", true);
     } finally {
         showSpinner(false);
@@ -87,14 +105,22 @@ async function fetchStudentData() {
 // 🔍 DYNAMIC FILTER POPULATION (100% LIVE SHEET BASED)
 // ==========================================================================
 function populateDynamicFilters() {
-    if (!studentDatabase.length) return;
+    if (!studentDatabase.length) {
+        console.warn("⚠️ Cannot populate filters: studentDatabase is empty.");
+        return;
+    }
 
-    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक सत्र, क्लासेस और सेक्शन्स निकालें
+    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक वैल्यूज का सेट निकालें
     const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort().reverse();
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // 1. सत्र ड्रॉपडाउन भरें (All Sessions हटाकर केवल शीट वाले लाइव सत्र)
+    console.log("🎯 Live Dynamic Values Extracted from Sheet:");
+    console.log("Sessions:", sessions);
+    console.log("Classes:", classes);
+    console.log("Sections:", sections);
+
+    // 1. सत्र ड्रॉपडाउन भरें
     document.querySelectorAll(".session-select").forEach(select => {
         const prevVal = select.value;
         let options = "";
@@ -104,7 +130,7 @@ function populateDynamicFilters() {
         if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) {
             select.value = prevVal;
         } else if (sessions.length > 0) {
-            select.value = sessions[0]; // डिफ़ॉल्ट रूप से पहला लाइव सत्र चुनें
+            select.value = sessions[0];
         }
     });
 
@@ -155,7 +181,6 @@ function renderAttendanceModule() {
         const sessionMatch = !selectedSession || student.session === selectedSession;
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         
-        // स्मार्ट सेक्शन मिलान (Section A और A दोनों को हैंडल करेगा)
         const cleanStudentSection = String(student.section).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const sectionMatch = selectedSection === "ALL" || 
