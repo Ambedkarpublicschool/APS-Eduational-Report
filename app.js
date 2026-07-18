@@ -1,7 +1,7 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
- * 100% Dynamic Session & Date Initializer Engine
+ * 100% Dynamic Session, Class & Section Synchronizer
  */
 
 // ==========================================================================
@@ -15,12 +15,11 @@ const IS_DEMO_MODE = false;
 // ==========================================================================
 let studentDatabase = [];
 let currentModule = 'attendance';
-let hasUserSelectedSession = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("⚡ System Initialized connecting to:", API_URL);
     
-    // 1. आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में ऑटो-सेट करें
+    // आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में ऑटो-सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
@@ -29,9 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     setupEventListeners();
-    
-    // 2. सबसे पहले बिना किसी हार्डकोडेड सत्र के डेटा मंगाएंगे ताकि शीट का लाइव सत्र मिल सके
-    fetchStudentData(true); 
+    fetchStudentData(); 
 });
 
 function updateApiStatusBadge() {
@@ -45,7 +42,7 @@ function updateApiStatusBadge() {
 // ==========================================================================
 // 📥 FETCH DATA FROM GOOGLE SHEETS (`doGet`)
 // ==========================================================================
-async function fetchStudentData(isInitialLoad = false) {
+async function fetchStudentData() {
     showSpinner(true);
     try {
         const dateInput = document.getElementById("attendanceDateInput")?.value || "";
@@ -56,18 +53,8 @@ async function fetchStudentData(isInitialLoad = false) {
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        let url = `${API_URL}?action=getStudents&date=${formattedDate}`;
-        
-        // यदि यूजर ने खुद ड्रॉपडाउन से कोई सत्र चुना है, तभी वह पैरामीटर भेजें
-        if (!isInitialLoad) {
-            const selectedSession = document.querySelector(".session-select")?.value || "";
-            if (selectedSession && selectedSession !== "ALL") {
-                url += `&session=${selectedSession}`;
-            }
-        } else {
-            // शुरुआती लोड पर बैकएंड को बिना सत्र के हिट करेंगे ताकि वह सभी सक्रिय छात्रों को दे और हम शीट से लाइव सत्र उठा सकें
-            url += `&session=ALL`;
-        }
+        // बिना सत्र फ़िल्टर के बैकएंड हिट करेंगे ताकि शीट का सारा रॉ डेटा आ सके
+        let url = `${API_URL}?action=getStudents&date=${formattedDate}&session=ALL`;
 
         const response = await fetch(url);
         const resObject = await response.json();
@@ -76,10 +63,8 @@ async function fetchStudentData(isInitialLoad = false) {
             studentDatabase = resObject.data;
             updateApiStatusBadge();
             
-            // यदि शुरुआती लोड है, तो शीट के वास्तविक डेटा के आधार पर फिल्टर्स (सत्र, क्लास, सेक्शन) का निर्माण करें
-            if (isInitialLoad || !hasUserSelectedSession) {
-                populateDynamicFilters(isInitialLoad);
-            }
+            // डेटा आते ही तुरंत ड्रॉपडाउन फ़िल्टर्स (सत्र, क्लास, सेक्शन) को लाइव शीट डेटा से बनाएंगे
+            populateDynamicFilters();
             
             renderAttendanceModule();
             renderHistoryModule();
@@ -95,44 +80,56 @@ async function fetchStudentData(isInitialLoad = false) {
 // ==========================================================================
 // 🔍 DYNAMIC FILTER POPULATION (100% LIVE SHEET BASED)
 // ==========================================================================
-function populateDynamicFilters(isInitialLoad = false) {
+function populateDynamicFilters() {
     if (!studentDatabase.length) return;
 
-    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक वैल्यूज निकालें
-    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort().reverse(); // नए सत्र ऊपर दिखें
+    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक वैल्यूज का सेट निकालें
+    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort().reverse();
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // 1. सत्र ड्रॉपडाउन को पूरी तरह डायनामिक भरें
+    // 1. सत्र ड्रॉपडाउन को भरें और पहला सत्र डिफ़ॉल्ट सेलेक्ट करें
     document.querySelectorAll(".session-select").forEach(select => {
+        const currentVal = select.value;
         let options = "";
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
         options += '<option value="ALL">All Sessions</option>';
         select.innerHTML = options;
         
-        // शुरुआती लोड पर, जो भी सत्र शीट में सबसे पहले नंबर पर मौजूद है, उसे डिफ़ॉल्ट रूप से सेलेक्ट करें
-        if (isInitialLoad && sessions.length > 0) {
+        if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+            select.value = currentVal;
+        } else if (sessions.length > 0) {
             select.value = sessions[0];
         }
     });
 
-    // 2. क्लास ड्रॉपडाउन लोड करना
-    ["attFilterClass", "histFilterClass"].forEach(id => {
+    // 2. क्लास फ़िल्टर्स को डायनामिकली जनरेट करें
+    const classFilters = ["attFilterClass", "histFilterClass"];
+    classFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            let options = '<option value="ALL">All Classes</option>';
-            classes.forEach(c => { options += `<option value="${c}">${c}</option>`; });
-            select.innerHTML = options;
+            const currentVal = select.value;
+            let optionsHtml = '<option value="ALL">All Classes</option>';
+            classes.forEach(cls => {
+                optionsHtml += `<option value="${cls}">${cls}</option>`;
+            });
+            select.innerHTML = optionsHtml;
+            if (currentVal) select.value = currentVal;
         }
     });
 
-    // 3. सेक्शन ड्रॉपडाउन लोड करना
-    ["attFilterSection", "histFilterSection"].forEach(id => {
+    // 3. सेक्शन फ़िल्टर्स को डायनामिकली जनरेट करें
+    const sectionFilters = ["attFilterSection", "histFilterSection"];
+    sectionFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            let options = '<option value="ALL">All Sections</option>';
-            sections.forEach(s => { options += `<option value="${s}">${s}</option>`; });
-            select.innerHTML = options;
+            const currentVal = select.value;
+            let optionsHtml = '<option value="ALL">All Sections</option>';
+            sections.forEach(sec => {
+                optionsHtml += `<option value="${sec}">${sec}</option>`;
+            });
+            select.innerHTML = optionsHtml;
+            if (currentVal) select.value = currentVal;
         }
     });
 }
@@ -217,9 +214,6 @@ window.markLocalStatus = (studentId, status) => {
     }
 };
 
-// ==========================================================================
-// 📊 EDUCATIONAL HISTORY MODULE RENDERER
-// ==========================================================================
 function renderHistoryModule() {
     const container = document.getElementById("historyListContainer");
     if (!container) return;
@@ -258,9 +252,6 @@ function renderHistoryModule() {
     container.innerHTML = html || `<div class="p-8 text-center text-slate-500">No records found.</div>`;
 }
 
-// ==========================================================================
-// 📤 POST SUBMISSIONS
-// ==========================================================================
 async function submitAttendance() {
     const selectedDate = document.getElementById("attendanceDateInput")?.value || "";
     if (!selectedDate) return showToast("❌ Select a valid date first!", true);
@@ -284,7 +275,7 @@ async function submitAttendance() {
             body: JSON.stringify({ action: 'markAttendance', records: markedRecords })
         });
         showToast("🚀 Attendance synchronized with Sheet!");
-        setTimeout(() => fetchStudentData(false), 1500);
+        setTimeout(fetchStudentData, 1500);
     } catch (error) {
         showToast("❌ Save failed!", true);
     } finally {
@@ -292,23 +283,20 @@ async function submitAttendance() {
     }
 }
 
-// ==========================================================================
-// 🎨 EVENT LISTENERS
-// ==========================================================================
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
     
     document.querySelectorAll(".session-select").forEach(select => {
         select.addEventListener("change", (e) => {
-            hasUserSelectedSession = true; 
             document.querySelectorAll(".session-select").forEach(el => el.value = e.target.value);
-            fetchStudentData(false);
+            renderAttendanceModule();
+            renderHistoryModule();
         });
     });
 
     document.getElementById("attFilterClass")?.addEventListener("change", renderAttendanceModule);
     document.getElementById("attFilterSection")?.addEventListener("change", renderAttendanceModule);
-    document.getElementById("attendanceDateInput")?.addEventListener("change", () => fetchStudentData(false));
+    document.getElementById("attendanceDateInput")?.addEventListener("change", fetchStudentData);
     
     document.getElementById("historySearchInput")?.addEventListener("input", renderHistoryModule);
     document.getElementById("histFilterClass")?.addEventListener("change", renderHistoryModule);
@@ -348,7 +336,7 @@ function setupEventListeners() {
             showToast("💾 Log appended successfully!");
             document.getElementById("submitReportForm").reset();
             document.getElementById("modalSubmitReport").classList.add("hidden");
-            setTimeout(() => fetchStudentData(false), 1500);
+            setTimeout(fetchStudentData, 1500);
         } catch (err) {
             showToast("❌ Save failed.", true);
         } finally {
