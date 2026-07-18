@@ -249,17 +249,15 @@ function attachEvents() {
 
 
 
-    document
+document
+.getElementById("class")
+.addEventListener("change",async()=>{
 
-        .getElementById("class")
+    await loadSections();
 
-        .addEventListener(
+    await loadAttendance();
 
-            "change",
-
-            loadAttendance
-
-        );
+});
 
 
 
