@@ -50,14 +50,11 @@
             </div>
           </div>
 
-          <!-- Settings Button & API Status -->
+          <!-- API Status Badge -->
           <div class="flex items-center gap-2">
-            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 cursor-pointer" title="Google Sheets Setup Active">
+            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 cursor-pointer">
               <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>Live Sheets Connected
             </div>
-            <button id="btnSettings" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all shadow-sm" title="Configure Google Apps Script API URL">
-              ⚙️
-            </button>
           </div>
         </div>
 
@@ -87,7 +84,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center gap-2">
             <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Session:</label>
             <select class="session-select bg-slate-800 text-indigo-300 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="ALL">All Sessions</option>
+              <option value="2026-2027">2026-2027</option>
             </select>
           </div>
 
@@ -202,112 +199,51 @@
   <!-- ================= MODAL 1: SUBMIT REPORT (POP-UP FORM) ================= -->
   <div id="modalSubmitReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print-hide">
     <div class="glass-modal max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[90vh] flex flex-col">
-      
-      <!-- Modal Header -->
       <div class="px-6 py-5 bg-slate-900/90 border-b border-slate-700/80 flex items-center justify-between">
         <div id="modalSubmitReportHeader"></div>
         <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
       </div>
-
-      <!-- Modal Body (Form) -->
       <form id="submitReportForm" class="p-6 overflow-y-auto space-y-5 flex-1">
         <input type="hidden" id="reportStudentId">
         <input type="hidden" id="reportStudentSession">
-
-        <!-- Question 1 -->
         <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
-            1. Students reaction After teaching (Learning)
-          </label>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">1. Students reaction After teaching (Learning)</label>
           <input type="text" id="reportLearning" placeholder="e.g. Excellent / Understood the chapter well" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-
-        <!-- Question 2 -->
         <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
-            2. Students reaction After teaching (Writing)
-          </label>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">2. Students reaction After teaching (Writing)</label>
           <input type="text" id="reportWriting" placeholder="e.g. Neat handwriting / Completed notes" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-
-        <!-- Question 3 -->
         <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
-            3. Presence, cleanness (total)
-          </label>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">3. Presence, cleanness (total)</label>
           <input type="text" id="reportPresence" placeholder="e.g. Uniform well washed / Punctual" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-
-        <!-- Question 4 -->
         <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">
-            4. Study Material Availability
-          </label>
+          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">4. Study Material Availability</label>
           <input type="text" id="reportMaterial" placeholder="e.g. All textbooks available" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-
-        <!-- Question 5 -->
         <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-violet-300 mb-2">
-            5. Reaction of Parent after knowing all about Student
-          </label>
+          <label class="block text-xs uppercase tracking-wider font-bold text-violet-300 mb-2">5. Reaction of Parent after knowing all about Student</label>
           <textarea id="reportParent" rows="3" placeholder="e.g. Parent was satisfied with progress" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
         </div>
-
-        <!-- Form Submit & Cancel Buttons -->
         <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
-          <button type="button" class="close-modal-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors">
-            Cancel
-          </button>
-          <button type="submit" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/40 transition-all">
-            💾 Submit Report
-          </button>
+          <button type="button" class="close-modal-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors">Cancel</button>
+          <button type="submit" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/40 transition-all">💾 Submit Report</button>
         </div>
       </form>
-
     </div>
   </div>
 
   <!-- ================= MODAL 2: VIEW REPORT (TIMELINE) ================= -->
   <div id="modalTimelineReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md print-hide">
     <div class="glass-modal max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[92vh] flex flex-col">
-      
       <div class="px-6 py-4 bg-slate-900/95 border-b border-slate-700/80 flex items-center justify-between">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <span>📑 Student Educational History & Evaluation Timeline</span>
-        </h3>
+        <h3 class="text-lg font-bold text-white flex items-center gap-2"><span>📑 Student Educational History & Evaluation Timeline</span></h3>
         <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
       </div>
-
       <div id="modalTimelineContent" class="p-6 overflow-y-auto flex-1 space-y-6"></div>
-
       <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-700/80 flex justify-end">
-        <button class="close-modal-btn px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm">
-          Close
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ================= MODAL 3: API SETTINGS ================= -->
-  <div id="modalSettings" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print-hide">
-    <div class="glass-modal max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-slate-700 space-y-5">
-      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">⚙️ Configure Google Apps Script URL</h3>
-        <button id="btnCloseSettings" class="p-1 rounded-lg text-slate-400 hover:text-white">✕</button>
-      </div>
-      <div>
-        <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">Web App URL (`doGet` & `doPost` endpoint)</label>
-        <input type="text" id="inputApiUrl" value="https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec" class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-          Your Google Sheet deployment link is fully hardcoded. Changing this input manually will update session caches until the next reload.
-        </p>
-      </div>
-      <div class="flex justify-end gap-3 pt-2">
-        <button id="btnSaveSettings" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30">
-          Save Settings
-        </button>
+        <button class="close-modal-btn px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm">Close</button>
       </div>
     </div>
   </div>
@@ -321,8 +257,7 @@
   </div>
 
   <!-- ================= GLOBAL TOAST NOTIFICATION ================= -->
-  <div id="globalToast" class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all transform translate-y-20 opacity-0 duration-300 z-50 bg-indigo-600 text-white print-hide">
-  </div>
+  <div id="globalToast" class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all transform translate-y-20 opacity-0 duration-300 z-50 bg-indigo-600 text-white print-hide"></div>
 
   <!-- App JS -->
   <script src="app.js"></script>
