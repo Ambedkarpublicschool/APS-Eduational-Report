@@ -127,3 +127,21 @@ function renderAttendance(){
     container.innerHTML = html;
 
 }
+
+/*************************************************
+ * Toggle Attendance
+ *************************************************/
+
+function toggleAttendance(studentId, checked) {
+
+    const student = attendanceStudents.find(
+
+        s => s.studentId == studentId
+
+    );
+
+    if (!student) return;
+
+    student.present = checked;
+
+}
