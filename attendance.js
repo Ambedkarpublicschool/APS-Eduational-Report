@@ -82,9 +82,15 @@ async function loadAttendance(){
 
     );
 
-    attendanceStudents = students || [];
+attendanceStudents = (students || []).map(student => ({
 
-    filteredStudents = [...attendanceStudents];
+    ...student,
+
+    present: student.attendance === "P"
+
+}));
+
+filteredStudents = [...attendanceStudents];
 
     renderAttendance();
 
