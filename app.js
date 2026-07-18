@@ -50,10 +50,10 @@ async function fetchStudentData() {
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            // सिंगल डिजिट डे मैच फिक्स (e.g., 5-Jul)
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        // बिना सत्र फ़िल्टर के बैकएंड हिट करेंगे ताकि शीट का सारा रॉ डेटा आ सके
         let url = `${API_URL}?action=getStudents&date=${formattedDate}&session=ALL`;
 
         const response = await fetch(url);
@@ -63,7 +63,7 @@ async function fetchStudentData() {
             studentDatabase = resObject.data;
             updateApiStatusBadge();
             
-            // डेटा आते ही तुरंत ड्रॉपडाउन फ़िल्टर्स (सत्र, क्लास, सेक्शन) को लाइव शीट डेटा से बनाएंगे
+            // डेटा आते ही तुरंत ड्रॉपडाउन फ़िल्टर्स को लाइव शीट डेटा से बनाएंगे
             populateDynamicFilters();
             
             renderAttendanceModule();
@@ -88,7 +88,7 @@ function populateDynamicFilters() {
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // 1. सत्र ड्रॉपडाउन को भरें और पहला सत्र डिफ़ॉल्ट सेलेक्ट करें
+    // 1. सत्र ड्रॉपडाउन को भरें
     document.querySelectorAll(".session-select").forEach(select => {
         const currentVal = select.value;
         let options = "";
@@ -108,13 +108,11 @@ function populateDynamicFilters() {
     classFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            const currentVal = select.value;
             let optionsHtml = '<option value="ALL">All Classes</option>';
             classes.forEach(cls => {
                 optionsHtml += `<option value="${cls}">${cls}</option>`;
             });
             select.innerHTML = optionsHtml;
-            if (currentVal) select.value = currentVal;
         }
     });
 
@@ -123,19 +121,17 @@ function populateDynamicFilters() {
     sectionFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            const currentVal = select.value;
             let optionsHtml = '<option value="ALL">All Sections</option>';
             sections.forEach(sec => {
                 optionsHtml += `<option value="${sec}">${sec}</option>`;
             });
             select.innerHTML = optionsHtml;
-            if (currentVal) select.value = currentVal;
         }
     });
 }
 
 // ==========================================================================
-// 🎨 ATTENDANCE MODULE RENDERER
+// 🎨 ATTENDANCE MODULE RENDERER (SMART MATCH FIX)
 // ==========================================================================
 function renderAttendanceModule() {
     const tableBody = document.getElementById("attendanceTableBody");
@@ -149,7 +145,14 @@ function renderAttendanceModule() {
     const filteredData = studentDatabase.filter(student => {
         const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
-        const sectionMatch = selectedSection === "ALL" || student.section === selectedSection;
+        
+        // स्मार्ट सेक्शन मैच: यदि शीट में सिर्फ 'A' है और फ़िल्टर में 'Section A', तो भी मैच हो जाए
+        const cleanStudentSection = String(student.section).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const sectionMatch = selectedSection === "ALL" || 
+                             cleanSelectedSection.includes(cleanStudentSection) || 
+                             cleanStudentSection.includes(cleanSelectedSection);
+
         return sessionMatch && classMatch && sectionMatch;
     });
 
@@ -227,7 +230,13 @@ function renderHistoryModule() {
         const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
         const nameMatch = student.studentName.toLowerCase().includes(searchVal) || student.studentId.toLowerCase().includes(searchVal);
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
-        const sectionMatch = selectedSection === "ALL" || student.section === selectedSection;
+        
+        const cleanStudentSection = String(student.section).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const sectionMatch = selectedSection === "ALL" || 
+                             cleanSelectedSection.includes(cleanStudentSection) || 
+                             cleanStudentSection.includes(cleanSelectedSection);
+
         return sessionMatch && nameMatch && classMatch && sectionMatch;
     });
 
