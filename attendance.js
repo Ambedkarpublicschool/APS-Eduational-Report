@@ -300,3 +300,21 @@ async function loadClasses(){
 
 }
 
+async function loadSections(){
+
+    const className=document.getElementById("class").value;
+
+    const sections=await getSections(className);
+
+    const select=document.getElementById("section");
+
+    select.innerHTML='<option value="">All Sections</option>';
+
+    sections.forEach(sec=>{
+
+        select.innerHTML += `<option value="${sec}">${sec}</option>`;
+
+    });
+
+}
+
