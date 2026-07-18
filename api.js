@@ -228,3 +228,29 @@ function submitEducationalReport(data) {
     return apiPost("submitEducationalReport", data);
 
 }
+
+/*************************************************
+ * Class List
+ *************************************************/
+
+function getClasses(){
+
+    return apiGet("getClasses");
+
+}
+
+/*************************************************
+ * Section List
+ *************************************************/
+
+function getSections(className){
+
+    return apiGet("getSections",{
+
+        class:className
+
+    });
+
+}
+
+
