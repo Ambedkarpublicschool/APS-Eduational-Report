@@ -19,11 +19,12 @@ let currentModule = 'attendance';
 document.addEventListener("DOMContentLoaded", () => {
     console.log("⚡ System Initialized connecting to:", API_URL);
     
-    // आज की तारीख इनपुट फ़ील्ड में डिफ़ॉल्ट सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+        // यह लोकल टाइमज़ोन के हिसाब से बिल्कुल सही YYYY-MM-DD तारीख सेट करेगा
+        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+        dateInput.value = localISOTime;
     }
     
     initApp();
