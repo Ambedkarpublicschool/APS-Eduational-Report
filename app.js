@@ -1,30 +1,31 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
- * Fully Synchronized Dynamic Filter Engine (Updated API Endpoint)
  */
 
 // ==========================================================================
 // ⚙️ GLOBAL CONFIGURATION
 // ==========================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwZKDQMYVKuDTEC-OczhkHB4H105QHtRMI_cPWZCa3WcYJPIAa9kCb2gKfD6m--9Dw2ug/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxgcHiS4n0ygB1gcHoGj6jbb14YQCB5fKSI9-iyCl4Z1qOzxOXAwM35fwYCfFg79C69TA/exec";
 const IS_DEMO_MODE = false; 
 
-// ==========================================================================
-// ⚡ INITIALIZATION & STATE MANAGEMENT
-// ==========================================================================
 let studentDatabase = [];
 let currentModule = 'attendance';
 
+// ==========================================================================
+// ⚡ INITIALIZATION (तारीख और सत्र को तुरंत जबरदस्ती लोड करना)
+// ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     console.log("⚡ System Initialized connecting to:", API_URL);
     
-    // आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में ऑटो-सेट करें
+    // आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में डिफ़ॉल्ट सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
-        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-        const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
-        dateInput.value = localISOTime;
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
     
     setupEventListeners();
@@ -40,20 +41,25 @@ function updateApiStatusBadge() {
 }
 
 // ==========================================================================
-// 📥 FETCH DATA FROM GOOGLE SHEETS (`doGet`)
+// 📥 FETCH DATA FROM GOOGLE SHEETS
 // ==========================================================================
 async function fetchStudentData() {
     showSpinner(true);
     try {
-        const dateInput = document.getElementById("attendanceDateInput")?.value || "";
+        const dateInput = document.getElementById("attendanceDateInput")?.value;
         let formattedDate = "";
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            // सिंगल डिजिट डे मैच फिक्स (e.g., 5-Jul)
+            // बिना 0 के सिंगल डिजिट डे फ़ॉर्मेटिंग (e.g., 5-Jul)
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
+        } else {
+            const d = new Date();
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            formattedDate = `${d.getDate()}-${months[d.getMonth()]}`;
         }
         
+        // सभी सत्रों का डेटा मंगाएं ताकि फ़िल्टर शीट से लाइव काम कर सके
         let url = `${API_URL}?action=getStudents&date=${formattedDate}&session=ALL`;
 
         const response = await fetch(url);
@@ -63,7 +69,7 @@ async function fetchStudentData() {
             studentDatabase = resObject.data;
             updateApiStatusBadge();
             
-            // डेटा आते ही तुरंत ड्रॉपडाउन फ़िल्टर्स को लाइव शीट डेटा से बनाएंगे
+            // डेटा लोड होते ही ड्रॉपडाउन फ़िल्टर्स को लाइव शीट डेटा से पॉप्युलेट करें
             populateDynamicFilters();
             
             renderAttendanceModule();
@@ -83,49 +89,52 @@ async function fetchStudentData() {
 function populateDynamicFilters() {
     if (!studentDatabase.length) return;
 
-    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक वैल्यूज का सेट निकालें
+    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक सत्र, क्लासेस और सेक्शन्स निकालें
     const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort().reverse();
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // 1. सत्र ड्रॉपडाउन को भरें
+    // 1. सत्र ड्रॉपडाउन भरें (All Sessions हटाकर केवल शीट वाले लाइव सत्र)
     document.querySelectorAll(".session-select").forEach(select => {
-        const currentVal = select.value;
+        const prevVal = select.value;
         let options = "";
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
-        options += '<option value="ALL">All Sessions</option>';
         select.innerHTML = options;
         
-        if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
-            select.value = currentVal;
+        if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) {
+            select.value = prevVal;
         } else if (sessions.length > 0) {
-            select.value = sessions[0];
+            select.value = sessions[0]; // डिफ़ॉल्ट रूप से पहला लाइव सत्र चुनें
         }
     });
 
-    // 2. क्लास फ़िल्टर्स को डायनामिकली जनरेट करें
+    // 2. क्लास फ़िल्टर्स को लाइव क्लास कॉलम से भरें
     const classFilters = ["attFilterClass", "histFilterClass"];
     classFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
+            const prevVal = select.value;
             let optionsHtml = '<option value="ALL">All Classes</option>';
             classes.forEach(cls => {
                 optionsHtml += `<option value="${cls}">${cls}</option>`;
             });
             select.innerHTML = optionsHtml;
+            if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) select.value = prevVal;
         }
     });
 
-    // 3. सेक्शन फ़िल्टर्स को डायनामिकली जनरेट करें
+    // 3. सेक्शन फ़िल्टर्स को लाइव सेक्शन कॉलम से भरें
     const sectionFilters = ["attFilterSection", "histFilterSection"];
     sectionFilters.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
+            const prevVal = select.value;
             let optionsHtml = '<option value="ALL">All Sections</option>';
             sections.forEach(sec => {
                 optionsHtml += `<option value="${sec}">${sec}</option>`;
             });
             select.innerHTML = optionsHtml;
+            if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) select.value = prevVal;
         }
     });
 }
@@ -138,15 +147,15 @@ function renderAttendanceModule() {
     const cardContainer = document.getElementById("attendanceCardContainer");
     if (!tableBody || !cardContainer) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
+    const selectedSession = document.querySelector(".session-select")?.value || "";
     const selectedClass = document.getElementById("attFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("attFilterSection")?.value || "ALL";
 
     const filteredData = studentDatabase.filter(student => {
-        const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
+        const sessionMatch = !selectedSession || student.session === selectedSession;
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         
-        // स्मार्ट सेक्शन मैच (Section A और A दोनों को सिंक रखेगा)
+        // स्मार्ट सेक्शन मिलान (Section A और A दोनों को हैंडल करेगा)
         const cleanStudentSection = String(student.section).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const sectionMatch = selectedSection === "ALL" || 
@@ -221,13 +230,13 @@ function renderHistoryModule() {
     const container = document.getElementById("historyListContainer");
     if (!container) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
+    const selectedSession = document.querySelector(".session-select")?.value || "";
     const searchVal = document.getElementById("historySearchInput")?.value.toLowerCase() || "";
     const selectedClass = document.getElementById("histFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("histFilterSection")?.value || "ALL";
 
     const filteredData = studentDatabase.filter(student => {
-        const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
+        const sessionMatch = !selectedSession || student.session === selectedSession;
         const nameMatch = student.studentName.toLowerCase().includes(searchVal) || student.studentId.toLowerCase().includes(searchVal);
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         
