@@ -129,7 +129,6 @@ function renderAttendance(){
 /*************************************************
  * Toggle Attendance
  *************************************************/
-
 async function toggleAttendance(studentId, checked) {
 
     const student = attendanceStudents.find(
@@ -138,6 +137,7 @@ async function toggleAttendance(studentId, checked) {
 
     if (!student) return;
 
+    // UI में तुरंत Toggle दिखे
     student.present = checked;
     student.attendance = checked ? "P" : "A";
 
@@ -151,13 +151,20 @@ async function toggleAttendance(studentId, checked) {
 
     if (result) {
 
-        student.totalPresent = checked
-            ? Number(student.totalPresent || 0) + 1
-            : Math.max(0, Number(student.totalPresent || 0) - 1);
+        // Sheet से Fresh Data दोबारा Load करो
+        await loadAttendance();
+
+        showToast("Attendance Saved");
+
+    } else {
+
+        // Save Fail होने पर पुरानी स्थिति वापस कर दो
+        student.present = !checked;
+        student.attendance = !checked ? "P" : "A";
 
         renderAttendance();
 
-        showToast("Attendance Saved");
+        showToast("Attendance Save Failed", false);
 
     }
 
