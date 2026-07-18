@@ -1,11 +1,18 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
+ * 📋 Student Attendance & Educational History Management System
  * Fully Synchronized Dynamic Filter Engine
  */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxamNHVVbKN89GpFws3WAhdnngFhJm0j_E2SdoEG41v6mb_0dHvdyfFYExpqRwe2PFvlg/exec";
+// ==========================================================================
+// ⚙️ GLOBAL CONFIGURATION
+// ==========================================================================
+const API_URL = "https://script.google.com/macros/s/AKfycbxgcHiS4n0ygB1gcHoGj6jbb14YQCB5fKSI9-iyCl4Z1qOzxOXAwM35fwYCfFg79C69TA/exec";
 const IS_DEMO_MODE = false; 
 
+// ==========================================================================
+// ⚡ INITIALIZATION & STATE MANAGEMENT
+// ==========================================================================
 let studentDatabase = [];
 let currentModule = 'attendance';
 let hasUserSelectedSession = false;
@@ -13,7 +20,7 @@ let hasUserSelectedSession = false;
 document.addEventListener("DOMContentLoaded", () => {
     console.log("⚡ System Initialized connecting to:", API_URL);
     
-    // 1. ज़बरदस्ती आज की सही तारीख बॉक्स में डालें
+    // 1. आज की सही तारीख बॉक्स में डिफ़ॉल्ट सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
@@ -21,14 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
         dateInput.value = localISOTime;
     }
 
-    // 2. बैकएंड से डेटा आने से पहले ही ड्रॉपडाउन को डिफ़ॉल्ट रूप से सेट कर दें ताकि स्क्रीन खाली न रहे
+    // 2. बैकएंड से डेटा आने से पहले ही ड्रॉपडाउन को डिफ़ॉल्ट रूप से सेट करें ताकि स्क्रीन खाली न रहे
     const sessionSelects = document.querySelectorAll(".session-select");
     sessionSelects.forEach(select => {
         select.innerHTML = '<option value="2026-2027">2026-2027</option><option value="ALL">All Sessions</option>';
         select.value = "2026-2027";
     });
     
-    initApp();
+    setupEventListeners();
+    fetchStudentData();
 });
 
 function updateApiStatusBadge() {
@@ -39,6 +47,9 @@ function updateApiStatusBadge() {
     }
 }
 
+// ==========================================================================
+// 📥 FETCH DATA FROM GOOGLE SHEETS (`doGet`)
+// ==========================================================================
 async function fetchStudentData() {
     showSpinner(true);
     try {
@@ -47,10 +58,10 @@ async function fetchStudentData() {
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            // शीट हेडर मैच के लिए सिंगल डिजिट (e.g., 5-Apr) फॉर्मेट
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        // डिफ़ॉल्ट रूप से ऑल सेशन हटाने के लिए सीधे करंट सेशन '2026-2027' पास कर रहे हैं
         const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
         const sessionParam = (selectedSession && selectedSession !== "ALL") ? `&session=${selectedSession}` : "&session=2026-2027";
 
@@ -76,6 +87,9 @@ async function fetchStudentData() {
     }
 }
 
+// ==========================================================================
+// 🔍 DYNAMIC FILTER POPULATION
+// ==========================================================================
 function populateDynamicFilters() {
     if (!studentDatabase.length) return;
 
@@ -88,7 +102,6 @@ function populateDynamicFilters() {
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
         select.innerHTML = options;
         
-        // ऑल सेशन्स की जगह डिफ़ॉल्ट रूप से 2026-2027 सेलेक्ट करने का फिक्स
         if (sessions.includes("2026-2027")) {
             select.value = "2026-2027";
         } else if (sessions.length > 0) {
@@ -115,6 +128,9 @@ function populateDynamicFilters() {
     });
 }
 
+// ==========================================================================
+// 🎨 ATTENDANCE MODULE RENDERER
+// ==========================================================================
 function renderAttendanceModule() {
     const tableBody = document.getElementById("attendanceTableBody");
     const cardContainer = document.getElementById("attendanceCardContainer");
@@ -163,7 +179,7 @@ function renderAttendanceModule() {
         const isAbsent = student.attendanceStatus === "A";
         cardsHtml += `
             <div class="glass-panel p-4 rounded-2xl border border-slate-700/50 space-y-4">
-                <div class="flex item-center gap-3">
+                <div class="flex items-center gap-3">
                     <img src="${student.studentPhotoLink || 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-xl object-cover border border-slate-600" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="flex-1">
                         <div class="text-xs font-mono text-indigo-400 font-bold">${student.studentId}</div>
@@ -233,6 +249,9 @@ function renderHistoryModule() {
     container.innerHTML = html || `<div class="p-8 text-center text-slate-500">No records found.</div>`;
 }
 
+// ==========================================================================
+// 📤 POST SUBMISSIONS
+// ==========================================================================
 async function submitAttendance() {
     const selectedDate = document.getElementById("attendanceDateInput")?.value || "";
     if (!selectedDate) return showToast("❌ Select a valid date first!", true);
@@ -264,6 +283,9 @@ async function submitAttendance() {
     }
 }
 
+// ==========================================================================
+// 🎨 EVENT LISTENERS & MODALS LOGIC
+// ==========================================================================
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
     
