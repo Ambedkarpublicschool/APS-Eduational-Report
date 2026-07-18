@@ -11,13 +11,24 @@ let currentModule = 'attendance';
 let hasUserSelectedSession = false;
 
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("⚡ System Initialized connecting to:", API_URL);
+    
+    // 1. ज़बरदस्ती आज की सही तारीख बॉक्स में डालें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-        dateInput.value = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+        const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+        dateInput.value = localISOTime;
     }
-    setupEventListeners();
-    fetchStudentData();
+
+    // 2. बैकएंड से डेटा आने से पहले ही ड्रॉपडाउन को डिफ़ॉल्ट रूप से सेट कर दें ताकि स्क्रीन खाली न रहे
+    const sessionSelects = document.querySelectorAll(".session-select");
+    sessionSelects.forEach(select => {
+        select.innerHTML = '<option value="2026-2027">2026-2027</option><option value="ALL">All Sessions</option>';
+        select.value = "2026-2027";
+    });
+    
+    initApp();
 });
 
 function updateApiStatusBadge() {
