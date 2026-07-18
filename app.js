@@ -8,7 +8,7 @@ const IS_DEMO_MODE = false;
 
 let studentDatabase = [];
 let currentModule = 'attendance';
-let hasUserSelectedSession = false; // ट्रैक करने के लिए कि यूजर ने मैन्युअली सत्र बदला है या नहीं
+let hasUserSelectedSession = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     const dateInput = document.getElementById("attendanceDateInput");
@@ -36,7 +36,6 @@ async function fetchStudentData() {
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            // महत्वपूर्ण फिक्स: शीट हेडर मैच के लिए सिंगल डिजिट (e.g., 5-Apr) फॉर्मेट
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
@@ -50,7 +49,6 @@ async function fetchStudentData() {
             studentDatabase = resObject.data;
             updateApiStatusBadge();
             
-            // केवल पहली बार लोड होने पर ड्रॉपडाउन फ़िल्टर्स को डायनामिकली भरें
             if (!hasUserSelectedSession) {
                 populateDynamicFilters();
             }
@@ -69,22 +67,19 @@ async function fetchStudentData() {
 function populateDynamicFilters() {
     if (!studentDatabase.length) return;
 
-    // शीट से लाइव यूनीक सत्र, क्लासेस और सेक्शन्स निकालना
     const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort();
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
-    // सत्र ड्रॉपडाउन लोड करना
     document.querySelectorAll(".session-select").forEach(select => {
         let options = '<option value="ALL">All Sessions</option>';
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
         select.innerHTML = options;
         if (sessions.length > 0 && select.value === "ALL") {
-            select.value = sessions[0]; // डिफ़ॉल्ट रूप से पहला लाइव सत्र चुनें
+            select.value = sessions[0];
         }
     });
 
-    // क्लास ड्रॉपडाउन लोड करना
     ["attFilterClass", "histFilterClass"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -94,7 +89,6 @@ function populateDynamicFilters() {
         }
     });
 
-    // सेक्शन ड्रॉपडाउन लोड करना
     ["attFilterSection", "histFilterSection"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -254,11 +248,9 @@ async function submitAttendance() {
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
     
-    // सत्र परिवर्तन होने पर लाइव री-फेचिंग
     document.querySelectorAll(".session-select").forEach(select => {
         select.addEventListener("change", (e) => {
             hasUserSelectedSession = true; 
-            // दोनों सत्र सिलेक्टर्स को सिंक में रखें
             document.querySelectorAll(".session-select").forEach(el => el.value = e.target.value);
             fetchStudentData();
         });
