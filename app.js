@@ -1,7 +1,7 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
- * Fully Synchronized Dynamic Filter Engine
+ * 100% Dynamic Session & Date Initializer Engine
  */
 
 // ==========================================================================
@@ -20,23 +20,18 @@ let hasUserSelectedSession = false;
 document.addEventListener("DOMContentLoaded", () => {
     console.log("⚡ System Initialized connecting to:", API_URL);
     
-    // 1. आज की सही तारीख बॉक्स में डिफ़ॉल्ट सेट करें
+    // 1. आज की तारीख को लोकल टाइमज़ोन के अनुसार बॉक्स में ऑटो-सेट करें
     const dateInput = document.getElementById("attendanceDateInput");
     if (dateInput) {
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
         const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
         dateInput.value = localISOTime;
     }
-
-    // 2. बैकएंड से डेटा आने से पहले ही ड्रॉपडाउन को डिफ़ॉल्ट रूप से सेट करें ताकि स्क्रीन खाली न रहे
-    const sessionSelects = document.querySelectorAll(".session-select");
-    sessionSelects.forEach(select => {
-        select.innerHTML = '<option value="2026-2027">2026-2027</option><option value="ALL">All Sessions</option>';
-        select.value = "2026-2027";
-    });
     
     setupEventListeners();
-    fetchStudentData();
+    
+    // 2. सबसे पहले बिना किसी हार्डकोडेड सत्र के डेटा मंगाएंगे ताकि शीट का लाइव सत्र मिल सके
+    fetchStudentData(true); 
 });
 
 function updateApiStatusBadge() {
@@ -50,7 +45,7 @@ function updateApiStatusBadge() {
 // ==========================================================================
 // 📥 FETCH DATA FROM GOOGLE SHEETS (`doGet`)
 // ==========================================================================
-async function fetchStudentData() {
+async function fetchStudentData(isInitialLoad = false) {
     showSpinner(true);
     try {
         const dateInput = document.getElementById("attendanceDateInput")?.value || "";
@@ -58,22 +53,32 @@ async function fetchStudentData() {
         if (dateInput) {
             const d = new Date(dateInput);
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            // शीट हेडर मैच के लिए सिंगल डिजिट (e.g., 5-Apr) फॉर्मेट
             formattedDate = `${d.getDate()}-${months[d.getMonth()]}`; 
         }
         
-        const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
-        const sessionParam = (selectedSession && selectedSession !== "ALL") ? `&session=${selectedSession}` : "&session=2026-2027";
+        let url = `${API_URL}?action=getStudents&date=${formattedDate}`;
+        
+        // यदि यूजर ने खुद ड्रॉपडाउन से कोई सत्र चुना है, तभी वह पैरामीटर भेजें
+        if (!isInitialLoad) {
+            const selectedSession = document.querySelector(".session-select")?.value || "";
+            if (selectedSession && selectedSession !== "ALL") {
+                url += `&session=${selectedSession}`;
+            }
+        } else {
+            // शुरुआती लोड पर बैकएंड को बिना सत्र के हिट करेंगे ताकि वह सभी सक्रिय छात्रों को दे और हम शीट से लाइव सत्र उठा सकें
+            url += `&session=ALL`;
+        }
 
-        const response = await fetch(`${API_URL}?action=getStudents&date=${formattedDate}${sessionParam}`);
+        const response = await fetch(url);
         const resObject = await response.json();
         
         if (resObject.status === "success" && resObject.data) {
             studentDatabase = resObject.data;
             updateApiStatusBadge();
             
-            if (!hasUserSelectedSession) {
-                populateDynamicFilters();
+            // यदि शुरुआती लोड है, तो शीट के वास्तविक डेटा के आधार पर फिल्टर्स (सत्र, क्लास, सेक्शन) का निर्माण करें
+            if (isInitialLoad || !hasUserSelectedSession) {
+                populateDynamicFilters(isInitialLoad);
             }
             
             renderAttendanceModule();
@@ -88,27 +93,30 @@ async function fetchStudentData() {
 }
 
 // ==========================================================================
-// 🔍 DYNAMIC FILTER POPULATION
+// 🔍 DYNAMIC FILTER POPULATION (100% LIVE SHEET BASED)
 // ==========================================================================
-function populateDynamicFilters() {
+function populateDynamicFilters(isInitialLoad = false) {
     if (!studentDatabase.length) return;
 
-    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort();
+    // शीट से आने वाले वास्तविक डेटा के आधार पर यूनीक वैल्यूज निकालें
+    const sessions = [...new Set(studentDatabase.map(s => s.session).filter(Boolean))].sort().reverse(); // नए सत्र ऊपर दिखें
     const classes = [...new Set(studentDatabase.map(s => s.currentClass).filter(Boolean))].sort();
     const sections = [...new Set(studentDatabase.map(s => s.section).filter(Boolean))].sort();
 
+    // 1. सत्र ड्रॉपडाउन को पूरी तरह डायनामिक भरें
     document.querySelectorAll(".session-select").forEach(select => {
-        let options = '<option value="ALL">All Sessions</option>';
+        let options = "";
         sessions.forEach(s => { options += `<option value="${s}">${s}</option>`; });
+        options += '<option value="ALL">All Sessions</option>';
         select.innerHTML = options;
         
-        if (sessions.includes("2026-2027")) {
-            select.value = "2026-2027";
-        } else if (sessions.length > 0) {
+        // शुरुआती लोड पर, जो भी सत्र शीट में सबसे पहले नंबर पर मौजूद है, उसे डिफ़ॉल्ट रूप से सेलेक्ट करें
+        if (isInitialLoad && sessions.length > 0) {
             select.value = sessions[0];
         }
     });
 
+    // 2. क्लास ड्रॉपडाउन लोड करना
     ["attFilterClass", "histFilterClass"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -118,6 +126,7 @@ function populateDynamicFilters() {
         }
     });
 
+    // 3. सेक्शन ड्रॉपडाउन लोड करना
     ["attFilterSection", "histFilterSection"].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -136,7 +145,7 @@ function renderAttendanceModule() {
     const cardContainer = document.getElementById("attendanceCardContainer");
     if (!tableBody || !cardContainer) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
+    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
     const selectedClass = document.getElementById("attFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("attFilterSection")?.value || "ALL";
 
@@ -215,7 +224,7 @@ function renderHistoryModule() {
     const container = document.getElementById("historyListContainer");
     if (!container) return;
 
-    const selectedSession = document.querySelector(".session-select")?.value || "2026-2027";
+    const selectedSession = document.querySelector(".session-select")?.value || "ALL";
     const searchVal = document.getElementById("historySearchInput")?.value.toLowerCase() || "";
     const selectedClass = document.getElementById("histFilterClass")?.value || "ALL";
     const selectedSection = document.getElementById("histFilterSection")?.value || "ALL";
@@ -275,7 +284,7 @@ async function submitAttendance() {
             body: JSON.stringify({ action: 'markAttendance', records: markedRecords })
         });
         showToast("🚀 Attendance synchronized with Sheet!");
-        setTimeout(fetchStudentData, 1500);
+        setTimeout(() => fetchStudentData(false), 1500);
     } catch (error) {
         showToast("❌ Save failed!", true);
     } finally {
@@ -284,7 +293,7 @@ async function submitAttendance() {
 }
 
 // ==========================================================================
-// 🎨 EVENT LISTENERS & MODALS LOGIC
+// 🎨 EVENT LISTENERS
 // ==========================================================================
 function setupEventListeners() {
     document.getElementById("btnSubmitAttendance")?.addEventListener("click", submitAttendance);
@@ -293,13 +302,13 @@ function setupEventListeners() {
         select.addEventListener("change", (e) => {
             hasUserSelectedSession = true; 
             document.querySelectorAll(".session-select").forEach(el => el.value = e.target.value);
-            fetchStudentData();
+            fetchStudentData(false);
         });
     });
 
     document.getElementById("attFilterClass")?.addEventListener("change", renderAttendanceModule);
     document.getElementById("attFilterSection")?.addEventListener("change", renderAttendanceModule);
-    document.getElementById("attendanceDateInput")?.addEventListener("change", fetchStudentData);
+    document.getElementById("attendanceDateInput")?.addEventListener("change", () => fetchStudentData(false));
     
     document.getElementById("historySearchInput")?.addEventListener("input", renderHistoryModule);
     document.getElementById("histFilterClass")?.addEventListener("change", renderHistoryModule);
@@ -339,7 +348,7 @@ function setupEventListeners() {
             showToast("💾 Log appended successfully!");
             document.getElementById("submitReportForm").reset();
             document.getElementById("modalSubmitReport").classList.add("hidden");
-            setTimeout(fetchStudentData, 1500);
+            setTimeout(() => fetchStudentData(false), 1500);
         } catch (err) {
             showToast("❌ Save failed.", true);
         } finally {
