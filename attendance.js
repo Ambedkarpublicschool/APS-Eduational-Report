@@ -145,3 +145,140 @@ function toggleAttendance(studentId, checked) {
     student.present = checked;
 
 }
+
+
+/*************************************************
+ * Submit Attendance
+ *************************************************/
+
+async function submitAttendanceData() {
+
+    if (attendanceStudents.length == 0) {
+
+        showToast("No Students Found", false);
+
+        return;
+
+    }
+
+    const students = attendanceStudents.map(student => ({
+
+        rowNumber: student.rowNumber,
+
+        present: student.present === true
+
+    }));
+
+    const result = await submitAttendance(students);
+
+    if (result) {
+
+        showToast("Attendance Saved Successfully");
+
+        loadAttendance();
+
+    }
+
+}
+
+/*************************************************
+ * Search Student
+ *************************************************/
+
+function searchStudent() {
+
+    const keyword = document
+        .getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+    filteredStudents = attendanceStudents.filter(student => {
+
+        return (
+
+            student.studentName.toLowerCase().includes(keyword)
+
+            ||
+
+            student.studentId.toLowerCase().includes(keyword)
+
+        );
+
+    });
+
+    renderAttendance();
+
+}
+
+/*************************************************
+ * Events
+ *************************************************/
+
+function attachEvents() {
+
+    document
+
+        .getElementById("search")
+
+        .addEventListener(
+
+            "keyup",
+
+            searchStudent
+
+        );
+
+
+
+    document
+
+        .getElementById("session")
+
+        .addEventListener(
+
+            "change",
+
+            loadAttendance
+
+        );
+
+
+
+    document
+
+        .getElementById("class")
+
+        .addEventListener(
+
+            "change",
+
+            loadAttendance
+
+        );
+
+
+
+    document
+
+        .getElementById("section")
+
+        .addEventListener(
+
+            "change",
+
+            loadAttendance
+
+        );
+
+}
+
+/*************************************************
+ * Refresh Attendance
+ *************************************************/
+
+function refreshAttendance() {
+
+    loadAttendance();
+
+}
