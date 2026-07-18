@@ -1,265 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APS Attendance & Educational History System</title>
-  
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css">
-  
-  <!-- Tailwind Configuration for Custom Colors -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            glass: "rgba(30, 41, 59, 0.75)",
-          }
-        }
-      }
-    }
-  </script>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Educational Monitoring System</title>
+
+    <link rel="stylesheet" href="style.css">
+
 </head>
-<body class="text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- ================= PRINTABLE AREA FOR A4 REPORTS ================= -->
-  <div id="printReportContainer" class="hidden"></div>
+<body>
 
-  <!-- ================= MAIN APP WRAPPER ================= -->
-  <div class="min-h-screen flex flex-col print-hide">
-    
-    <!-- --- TOP GLASS NAVIGATION BAR --- -->
-    <header class="glass-nav sticky top-0 z-40 px-4 sm:px-8 py-4">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        
-        <!-- Logo & Title -->
-        <div class="flex items-center gap-3 w-full md:w-auto justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-600/30">
-              APS
-            </div>
-            <div>
-              <h1 class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
-                Student Portal
-              </h1>
-              <p class="text-xs text-indigo-300/80 font-medium">Attendance & Educational History System</p>
-            </div>
-          </div>
+    <!-- Loader -->
+    <div id="loader" class="loader" style="display:none;">
+        Loading...
+    </div>
 
-          <!-- API Status Badge -->
-          <div class="flex items-center gap-2">
-            <div id="apiStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 cursor-pointer">
-              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>Live Sheets Connected
-            </div>
-          </div>
+    <!-- Header -->
+    <header class="header">
+
+        <div class="logo">
+
+            <img src="assets/logo.png" alt="Logo">
+
         </div>
 
-        <!-- Module Switch Tabs -->
-        <nav class="flex items-center bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 w-full md:w-auto">
-          <button id="tabAttendance" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-lg">
-            <span>📋 Student Attendance</span>
-          </button>
-          <button id="tabHistory" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-slate-800/60 text-slate-300 hover:text-white">
-            <span>📊 Educational History</span>
-          </button>
-        </nav>
+        <div class="school-details">
 
-      </div>
+            <h1 id="schoolName">Aryavart Public School</h1>
+
+            <p>Educational Monitoring System</p>
+
+        </div>
+
     </header>
 
-    <!-- --- MAIN CONTENT CONTAINER --- -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
-      
-      <!-- ================= MODULE 1: STUDENT ATTENDANCE ================= -->
-      <section id="moduleAttendance" class="space-y-6">
-        
-        <!-- Top Filter Bar -->
-        <div class="glass-panel p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-          
-          <!-- Session Select -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Session:</label>
-            <select class="session-select bg-slate-800 text-indigo-300 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="2026-2027">2026-2027</option>
-            </select>
-          </div>
+    <!-- Navigation -->
 
-          <!-- Attendance Date Picker -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Attendance Date:</label>
-            <input type="date" id="attendanceDateInput" class="bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
-          </div>
+    <nav class="tabs">
 
-          <!-- Class Filter -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Class:</label>
-            <select id="attFilterClass" class="filter-class bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="ALL">All Classes</option>
-            </select>
-          </div>
+        <button id="attendanceTab">
 
-          <!-- Section Filter -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Section:</label>
-            <select id="attFilterSection" class="filter-section bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="ALL">All Sections</option>
-            </select>
-          </div>
+            Attendance
 
-        </div>
+        </button>
 
-        <!-- PC Full-Width Table View -->
-        <div class="hidden md:block glass-panel rounded-2xl overflow-hidden shadow-xl border border-slate-700/60">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-800/80 border-b border-slate-700 text-slate-300 text-xs font-bold uppercase tracking-wider">
-                <th class="p-4 w-28">Student ID</th>
-                <th class="p-4">Student Info</th>
-                <th class="p-4 text-center w-36">Total Present</th>
-                <th class="p-4 text-center w-36">Month Present</th>
-                <th class="p-4 text-center w-48">Attendance Status</th>
-              </tr>
-            </thead>
-            <tbody id="attendanceTableBody" class="divide-y divide-slate-700/60 text-sm">
-              <!-- Dynamically populated from JS -->
-            </tbody>
-          </table>
-        </div>
+        <button id="reportTab">
 
-        <!-- Mobile Touch-Friendly Card View -->
-        <div id="attendanceCardContainer" class="md:hidden grid grid-cols-1 gap-4">
-          <!-- Dynamically populated from JS -->
-        </div>
+            Educational Report
 
-        <!-- Bottom Submit Section -->
-        <div class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border-t-2 border-indigo-500/50">
-          <div>
-            <h4 class="font-bold text-white text-base">Save Daily Attendance</h4>
-            <p class="text-xs text-slate-400">Updates live 'Total Present' and 'Month Present' columns automatically.</p>
-          </div>
-          <button id="btnSubmitAttendance" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
-            <span>🚀 Submit Attendance</span>
-          </button>
-        </div>
+        </button>
 
-      </section>
+    </nav>
 
-      <!-- ================= MODULE 2: EDUCATIONAL HISTORY ================= -->
-      <section id="moduleHistory" class="hidden space-y-6">
-        
-        <!-- Top Filter & Search Bar -->
-        <div class="glass-panel p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-          
-          <!-- Live Search Input -->
-          <div class="flex-1 min-w-[240px]">
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">🔍</span>
-              <input type="text" id="historySearchInput" placeholder="Search Student by Name or ID..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-          </div>
+    <!-- Filters -->
 
-          <!-- Class Filter -->
-          <div class="flex items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Class:</label>
-            <select id="histFilterClass" class="filter-class bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="ALL">All Classes</option>
-            </select>
-          </div>
+    <section class="filters">
 
-          <!-- Section Filter -->
-          <div class="flex items-center gap-2">
-            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold">Section:</label>
-            <select id="histFilterSection" class="filter-section bg-slate-800 text-white border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="ALL">All Sections</option>
-            </select>
-          </div>
+        <select id="session">
 
-        </div>
+        </select>
 
-        <!-- Student Cards List -->
-        <div id="historyListContainer" class="grid grid-cols-1 gap-4">
-          <!-- Dynamically populated from JS -->
-        </div>
+        <select id="class">
 
-      </section>
+        </select>
+
+        <select id="section">
+
+        </select>
+
+        <input
+
+            type="text"
+
+            id="search"
+
+            placeholder="Search Student">
+
+    </section>
+
+    <!-- Content -->
+
+    <main id="content">
 
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-auto py-6 text-center text-xs text-slate-500 border-t border-slate-800/80">
-      <p>Google Sheets + GitHub Pages Web App | Designed with Rich Aesthetics & Glassmorphism</p>
-    </footer>
+    <!-- Report Modal -->
 
-  </div>
+    <div id="reportModal" class="modal">
 
-  <!-- ================= MODAL 1: SUBMIT REPORT (POP-UP FORM) ================= -->
-  <div id="modalSubmitReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm print-hide">
-    <div class="glass-modal max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[90vh] flex flex-col">
-      <div class="px-6 py-5 bg-slate-900/90 border-b border-slate-700/80 flex items-center justify-between">
-        <div id="modalSubmitReportHeader"></div>
-        <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
-      </div>
-      <form id="submitReportForm" class="p-6 overflow-y-auto space-y-5 flex-1">
-        <input type="hidden" id="reportStudentId">
-        <input type="hidden" id="reportStudentSession">
-        <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">1. Students reaction After teaching (Learning)</label>
-          <input type="text" id="reportLearning" placeholder="e.g. Excellent / Understood the chapter well" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <div class="modal-content">
+
+            <span id="closeModal">
+
+                ×
+
+            </span>
+
+            <div id="modalBody">
+
+            </div>
+
         </div>
-        <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">2. Students reaction After teaching (Writing)</label>
-          <input type="text" id="reportWriting" placeholder="e.g. Neat handwriting / Completed notes" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">3. Presence, cleanness (total)</label>
-          <input type="text" id="reportPresence" placeholder="e.g. Uniform well washed / Punctual" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-indigo-300 mb-2">4. Study Material Availability</label>
-          <input type="text" id="reportMaterial" placeholder="e.g. All textbooks available" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs uppercase tracking-wider font-bold text-violet-300 mb-2">5. Reaction of Parent after knowing all about Student</label>
-          <textarea id="reportParent" rows="3" placeholder="e.g. Parent was satisfied with progress" class="w-full bg-slate-800/90 text-white border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
-        </div>
-        <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
-          <button type="button" class="close-modal-btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors">Cancel</button>
-          <button type="submit" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/40 transition-all">💾 Submit Report</button>
-        </div>
-      </form>
+
     </div>
-  </div>
 
-  <!-- ================= MODAL 2: VIEW REPORT (TIMELINE) ================= -->
-  <div id="modalTimelineReport" class="fixed-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md print-hide">
-    <div class="glass-modal max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700 max-h-[92vh] flex flex-col">
-      <div class="px-6 py-4 bg-slate-900/95 border-b border-slate-700/80 flex items-center justify-between">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2"><span>📑 Student Educational History & Evaluation Timeline</span></h3>
-        <button class="close-modal-btn p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">✕</button>
-      </div>
-      <div id="modalTimelineContent" class="p-6 overflow-y-auto flex-1 space-y-6"></div>
-      <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-700/80 flex justify-end">
-        <button class="close-modal-btn px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm">Close</button>
-      </div>
+    <!-- Toast -->
+
+    <div id="toast">
+
     </div>
-  </div>
 
-  <!-- ================= GLOBAL SPINNER ================= -->
-  <div id="globalSpinner" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs print-hide">
-    <div class="bg-slate-900/90 border border-slate-700 px-6 py-4 rounded-2xl flex items-center gap-4 shadow-2xl">
-      <div class="w-7 h-7 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <span class="font-semibold text-sm text-slate-200">Connecting to Google Sheets...</span>
-    </div>
-  </div>
+    <script src="config.js"></script>
 
-  <!-- ================= GLOBAL TOAST NOTIFICATION ================= -->
-  <div id="globalToast" class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all transform translate-y-20 opacity-0 duration-300 z-50 bg-indigo-600 text-white print-hide"></div>
+    <script src="api.js"></script>
 
-  <!-- App JS -->
-  <script src="app.js"></script>
+    <script src="attendance.js"></script>
+
+    <script src="report.js"></script>
+
 </body>
+
 </html>
