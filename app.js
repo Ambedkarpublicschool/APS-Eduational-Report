@@ -1,13 +1,13 @@
 /**
  * 🚀 GOOGLE SHEETS + GITHUB RESPONSIVE WEB APP
  * 📋 Student Attendance & Educational History Management System
- * 100% Dynamic Session, Class & Section Synchronizer
+ * Fully Synchronized Dynamic Filter Engine (Updated API Endpoint)
  */
 
 // ==========================================================================
 // ⚙️ GLOBAL CONFIGURATION
 // ==========================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxgcHiS4n0ygB1gcHoGj6jbb14YQCB5fKSI9-iyCl4Z1qOzxOXAwM35fwYCfFg79C69TA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwZKDQMYVKuDTEC-OczhkHB4H105QHtRMI_cPWZCa3WcYJPIAa9kCb2gKfD6m--9Dw2ug/exec";
 const IS_DEMO_MODE = false; 
 
 // ==========================================================================
@@ -131,7 +131,7 @@ function populateDynamicFilters() {
 }
 
 // ==========================================================================
-// 🎨 ATTENDANCE MODULE RENDERER (SMART MATCH FIX)
+// 🎨 ATTENDANCE MODULE RENDERER
 // ==========================================================================
 function renderAttendanceModule() {
     const tableBody = document.getElementById("attendanceTableBody");
@@ -146,7 +146,7 @@ function renderAttendanceModule() {
         const sessionMatch = selectedSession === "ALL" || student.session === selectedSession;
         const classMatch = selectedClass === "ALL" || student.currentClass === selectedClass;
         
-        // स्मार्ट सेक्शन मैच: यदि शीट में सिर्फ 'A' है और फ़िल्टर में 'Section A', तो भी मैच हो जाए
+        // स्मार्ट सेक्शन मैच (Section A और A दोनों को सिंक रखेगा)
         const cleanStudentSection = String(student.section).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const sectionMatch = selectedSection === "ALL" || 
@@ -235,7 +235,7 @@ function renderHistoryModule() {
         const cleanSelectedSection = String(selectedSection).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         const sectionMatch = selectedSection === "ALL" || 
                              cleanSelectedSection.includes(cleanStudentSection) || 
-                             cleanStudentSection.includes(cleanSelectedSection);
+                             cleanSelectedSection.includes(cleanSelectedSection);
 
         return sessionMatch && nameMatch && classMatch && sectionMatch;
     });
