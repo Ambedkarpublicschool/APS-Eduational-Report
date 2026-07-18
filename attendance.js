@@ -124,18 +124,24 @@ function renderAttendance(){
  * Toggle Attendance
  *************************************************/
 
-function toggleAttendance(studentId, checked) {
+async function toggleAttendance(studentId, checked) {
 
     const student = attendanceStudents.find(
-
         s => s.studentId == studentId
-
     );
 
     if (!student) return;
 
     student.present = checked;
 
+    await submitAttendance([
+        {
+            rowNumber: student.rowNumber,
+            present: checked
+        }
+    ]);
+
+    showToast("Attendance Saved");
 }
 
 
