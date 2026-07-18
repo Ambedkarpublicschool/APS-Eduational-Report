@@ -320,3 +320,46 @@ async function loadSections(){
 
 }
 
+/*************************************************
+ * Attendance Card
+ *************************************************/
+function attendanceCard(student) {
+
+    return `
+    <div class="student-card">
+
+        <div class="student-photo">
+            <img src="${student.photo || ''}" 
+                 onerror="this.src='https://via.placeholder.com/60'">
+        </div>
+
+        <div class="student-info">
+            <h3>${student.studentName}</h3>
+
+            <p>
+                <b>ID:</b> ${student.studentId}
+                &nbsp; | &nbsp;
+                <b>Class:</b> ${student.currentClass}-${student.section}
+            </p>
+
+            <p>
+                Total Present : ${student.totalPresent || 0}
+                &nbsp; | &nbsp;
+                This Month : ${student.monthPresent || 0}
+            </p>
+        </div>
+
+        <div class="attendance-check">
+            <label>
+                <input
+                    type="checkbox"
+                    ${student.present ? "checked" : ""}
+                    onchange="toggleAttendance('${student.studentId}',this.checked)">
+                Present
+            </label>
+        </div>
+
+    </div>
+    `;
+}
+
