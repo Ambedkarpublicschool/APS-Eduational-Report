@@ -14,9 +14,7 @@ function showLoader() {
     const loader = document.getElementById("loader");
 
     if (loader) {
-
         loader.style.display = "flex";
-
     }
 
 }
@@ -26,9 +24,7 @@ function hideLoader() {
     const loader = document.getElementById("loader");
 
     if (loader) {
-
         loader.style.display = "none";
-
     }
 
 }
@@ -70,17 +66,12 @@ async function apiGet(action, params = {}) {
     try {
 
         const query = new URLSearchParams({
-
             action,
-
             ...params
-
         });
 
         const response = await fetch(
-
             API + "?" + query.toString()
-
         );
 
         const result = await response.json();
@@ -98,7 +89,6 @@ async function apiGet(action, params = {}) {
         return result.data;
 
     }
-
     catch (error) {
 
         hideLoader();
@@ -123,23 +113,31 @@ async function apiPost(action, body = {}) {
 
     try {
 
+        const formData = new URLSearchParams();
+
+        formData.append("action", action);
+
+        Object.keys(body).forEach(key => {
+
+            const value = body[key];
+
+            if (typeof value === "object") {
+
+                formData.append(key, JSON.stringify(value));
+
+            } else {
+
+                formData.append(key, value);
+
+            }
+
+        });
+
         const response = await fetch(API, {
 
             method: "POST",
 
-            headers: {
-
-                "Content-Type": "application/json"
-
-            },
-
-            body: JSON.stringify({
-
-                action,
-
-                ...body
-
-            })
+            body: formData
 
         });
 
@@ -155,12 +153,15 @@ async function apiPost(action, body = {}) {
 
         }
 
-        showToast(result.data);
+        if (result.data) {
+
+            showToast(result.data);
+
+        }
 
         return result.data;
 
     }
-
     catch (error) {
 
         hideLoader();
@@ -233,7 +234,7 @@ function submitEducationalReport(data) {
  * Class List
  *************************************************/
 
-function getClasses(){
+function getClasses() {
 
     return apiGet("getClasses");
 
@@ -243,14 +244,12 @@ function getClasses(){
  * Section List
  *************************************************/
 
-function getSections(className){
+function getSections(className) {
 
-    return apiGet("getSections",{
+    return apiGet("getSections", {
 
-        class:className
+        class: className
 
     });
 
 }
-
-
