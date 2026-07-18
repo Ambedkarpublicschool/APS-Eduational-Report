@@ -323,12 +323,27 @@ function attendanceCard(student) {
     <div class="student-card">
 
         <div class="student-photo">
-            <img src="${student.photo || ''}" 
+            <img src="${student.photo || ''}"
                  onerror="this.src='https://via.placeholder.com/60'">
         </div>
 
         <div class="student-info">
-            <h3>${student.studentName}</h3>
+
+            <div class="student-header">
+
+                <h3>${student.studentName}</h3>
+
+                <div class="attendance-toggle">
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            ${student.present ? "checked" : ""}
+                            onchange="toggleAttendance('${student.studentId}',this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
 
             <p>
                 <b>ID:</b> ${student.studentId}
@@ -341,19 +356,9 @@ function attendanceCard(student) {
                 &nbsp; | &nbsp;
                 This Month : ${student.monthPresent || 0}
             </p>
-        </div>
 
-        <div class="attendance-check">
-            <label>
-                <input
-                    type="checkbox"
-                    ${student.present ? "checked" : ""}
-                    onchange="toggleAttendance('${student.studentId}',this.checked)">
-                Present
-            </label>
         </div>
 
     </div>
     `;
 }
-
