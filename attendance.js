@@ -133,21 +133,34 @@ function renderAttendance(){
 async function toggleAttendance(studentId, checked) {
 
     const student = attendanceStudents.find(
-        s => s.studentId == studentId
+        s => s.studentId === studentId
     );
 
     if (!student) return;
 
     student.present = checked;
+    student.attendance = checked ? "P" : "A";
 
-    await submitAttendance([
+    const result = await submitAttendance([
         {
             rowNumber: student.rowNumber,
+            studentId: student.studentId,
             present: checked
         }
     ]);
 
-    showToast("Attendance Saved");
+    if (result) {
+
+        student.totalPresent = checked
+            ? Number(student.totalPresent || 0) + 1
+            : Math.max(0, Number(student.totalPresent || 0) - 1);
+
+        renderAttendance();
+
+        showToast("Attendance Saved");
+
+    }
+
 }
 
 
