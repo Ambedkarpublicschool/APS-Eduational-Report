@@ -69,6 +69,7 @@ function loadCurrentSession() {
  *************************************************/
 
 async function loadAttendance(){
+    if(activeModule !== "attendance") return;
 
     const session = document.getElementById("session").value;
 
@@ -105,6 +106,7 @@ filteredStudents = [...attendanceStudents];
  *************************************************/
 
 function renderAttendance(){
+     if(activeModule !== "attendance") return;
 
     const container = document.getElementById("content");
 
