@@ -134,53 +134,60 @@ function createReportCard(student) {
 
     const photo = student.photo && student.photo.trim() !== ""
         ? student.photo
-        : "https://via.placeholder.com/70x70?text=Photo";
+        : "https://via.placeholder.com/90x90?text=Photo";
 
     return `
 
-    <div class="student-card">
+    <div class="edu-card">
 
-        <div class="student-photo">
+        <div class="edu-left">
 
-            <img src="${photo}"
-                 alt="${student.studentName}"
-                 loading="lazy">
-
-        </div>
-
-        <div class="student-info">
-
-            <h3>${student.studentName}</h3>
-
-            <p>
-                <strong>ID :</strong>
-                ${student.studentId}
-            </p>
-
-            <p>
-                <strong>Class :</strong>
-                ${student.currentClass}
-                -
-                ${student.section}
-            </p>
+            <img
+                src="${photo}"
+                class="edu-photo"
+                loading="lazy">
 
         </div>
 
-        <div class="student-actions">
+        <div class="edu-center">
+
+            <div class="edu-name">
+                ${student.studentName}
+            </div>
+
+            <div class="edu-id">
+                Student ID : <b>${student.studentId}</b>
+            </div>
+
+            <div class="edu-class">
+
+                Class :
+                <b>${student.currentClass}</b>
+
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+
+                Section :
+                <b>${student.section}</b>
+
+            </div>
+
+        </div>
+
+        <div class="edu-right">
 
             <button
-                class="btn btn-primary"
+                class="edu-btn submit-btn"
                 onclick="openSubmitReport(${student.rowNumber})">
 
-                Submit Report
+                📝 Submit Report
 
             </button>
 
             <button
-                class="btn btn-success"
+                class="edu-btn history-btn"
                 onclick="viewEducationalHistory(${student.rowNumber})">
 
-                View Report
+                📖 View History
 
             </button>
 
@@ -189,7 +196,6 @@ function createReportCard(student) {
     </div>
 
     `;
-
 }
 
 /**************************************************
