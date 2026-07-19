@@ -2,6 +2,8 @@
  * attendance.js
  *************************************************/
 
+let activeModule = "attendance";
+
 let attendanceStudents = [];
 
 let filteredStudents = [];
@@ -18,15 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initializeAttendance() {
 
- loadCurrentSession();
+    activeModule = "attendance";
 
-await loadClasses();
+    loadCurrentSession();
 
-await loadSections();
+    await loadClasses();
 
-await loadAttendance();
+    await loadSections();
 
-attachEvents();
+    await loadAttendance();
+
+    attachEvents();
 
 }
 
