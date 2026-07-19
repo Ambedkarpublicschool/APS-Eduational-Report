@@ -16,6 +16,8 @@ let reportSearch = "";
  **************************************************/
 
 async function initEducationalReport() {
+
+    console.log("Report Init");
     activeModule = "report";
 
     document.getElementById("attendanceTab")
