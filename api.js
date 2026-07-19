@@ -59,9 +59,9 @@ function showToast(message, success = true) {
  * GET API
  *************************************************/
 
-async function apiGet(action, params = {}) {
+async function apiGet(action, params = {}, showLoading = true) {
 
-    showLoader();
+    if (showLoading) showLoader();
 
     try {
 
@@ -76,7 +76,7 @@ async function apiGet(action, params = {}) {
 
         const result = await response.json();
 
-        hideLoader();
+        if (showLoading) hideLoader();
 
         if (!result.success) {
 
@@ -91,7 +91,7 @@ async function apiGet(action, params = {}) {
     }
     catch (error) {
 
-        hideLoader();
+        if (showLoading) hideLoader();
 
         console.error(error);
 
@@ -107,9 +107,9 @@ async function apiGet(action, params = {}) {
  * POST API
  *************************************************/
 
-async function apiPost(action, body = {}) {
+async function apiPost(action, body = {}, showLoading = true) {
 
-    showLoader();
+    if (showLoading) showLoader();
 
     try {
 
@@ -143,7 +143,7 @@ async function apiPost(action, body = {}) {
 
         const result = await response.json();
 
-        hideLoader();
+        if (showLoading) hideLoader();
 
         if (!result.success) {
 
@@ -153,18 +153,12 @@ async function apiPost(action, body = {}) {
 
         }
 
-        if (result.data) {
-
-            showToast(result.data);
-
-        }
-
         return result.data;
 
     }
     catch (error) {
 
-        hideLoader();
+        if (showLoading) hideLoader();
 
         console.error(error);
 
@@ -214,13 +208,16 @@ function getEducationalHistory(session, className, section) {
 
 }
 
+// Attendance Save WITHOUT Loader
 function submitAttendance(students) {
 
-    return apiPost("submitAttendance", {
-
-        students
-
-    });
+    return apiPost(
+        "submitAttendance",
+        {
+            students
+        },
+        false
+    );
 
 }
 
