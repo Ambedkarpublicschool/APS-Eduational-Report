@@ -149,14 +149,17 @@ async function toggleAttendance(studentId, checked) {
         }
     ]);
 
-    if (result) {
+if (result.success) {
 
-        // Sheet से Fresh Data दोबारा Load करो
-        await loadAttendance();
+    student.totalPresent = result.students[0].totalPresent;
+    student.monthPresent = result.students[0].monthPresent;
 
-        showToast("Attendance Saved");
+    renderAttendance();
 
-    } else {
+    showToast("Attendance Saved");
+
+}
+    else {
 
         // Save Fail होने पर पुरानी स्थिति वापस कर दो
         student.present = !checked;
