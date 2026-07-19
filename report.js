@@ -16,6 +16,7 @@ let reportSearch = "";
  **************************************************/
 
 async function initEducationalReport() {
+    activeModule = "report";
 
     document.getElementById("attendanceTab")
         .classList.remove("active");
