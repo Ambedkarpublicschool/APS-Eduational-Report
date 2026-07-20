@@ -283,3 +283,40 @@ function closeReportModal(){
         .style.display="none";
 
 }
+
+async function saveEducationalReport(){
+
+    if(!selectedStudent){
+        showToast("Student Not Selected", false);
+        return;
+    }
+
+    const data = {
+
+        rowNumber: selectedStudent.rowNumber,
+
+        learning: document.getElementById("learning").value.trim(),
+
+        writing: document.getElementById("writing").value.trim(),
+
+        cleanliness: document.getElementById("cleanliness").value.trim(),
+
+        studyMaterial: document.getElementById("studyMaterial").value.trim(),
+
+        parentReaction: document.getElementById("parentReaction").value.trim()
+
+    };
+
+    const result = await submitEducationalReport(data);
+
+    if(result){
+
+        showToast("Educational Report Saved Successfully");
+
+        closeReportModal();
+
+        await loadEducationalStudents();
+
+    }
+
+}
