@@ -322,3 +322,34 @@ async function saveEducationalReport(){
     }
 
 }
+
+async function viewEducationalHistory(rowNumber){
+
+    const history = await getStudentHistory(rowNumber);
+
+    if(!history){
+        showToast("History Not Found", false);
+        return;
+    }
+
+    document.getElementById("modalTitle").innerHTML =
+        "Educational History";
+
+    document.getElementById("learning").value =
+        history.learning || "";
+
+    document.getElementById("writing").value =
+        history.writing || "";
+
+    document.getElementById("cleanliness").value =
+        history.cleanliness || "";
+
+    document.getElementById("studyMaterial").value =
+        history.studyMaterial || "";
+
+    document.getElementById("parentReaction").value =
+        history.parentReaction || "";
+
+    document.getElementById("reportModal").style.display = "flex";
+
+}
