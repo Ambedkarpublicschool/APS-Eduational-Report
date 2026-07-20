@@ -262,3 +262,13 @@ async function getStudentHistory(rowNumber){
     return result;
 
 }
+
+async function getMultipleStudentHistory(rows){
+
+    return await apiGet("getMultipleStudentHistory",{
+
+        rows:JSON.stringify(rows)
+
+    });
+
+}
