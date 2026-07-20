@@ -1,353 +1,306 @@
-/* Import Modern Google Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Tailwind-Inspired Fonts & Colors System */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* ===========================
-   DESIGN SYSTEM & VARIABLES
-=========================== */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --primary-light: #eff6ff;
-    --success-color: #10b981;
-    --success-hover: #059669;
-    --danger-color: #ef4444;
-    --danger-hover: #dc2626;
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --text-main: #0f172a;
+    /* Rich Vibrant Theme Colors */
+    --brand-gradient: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    --bg-app: #f1f5f9;
+    --card-bg: #ffffff;
+    
+    /* Text Colors */
+    --text-heading: #0f172a;
+    --text-body: #334155;
     --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --radius-lg: 16px;
-    --radius-md: 10px;
-    --radius-sm: 6px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.01);
-    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Dynamic Accent Colors */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    
+    --success: #10b981;
+    --success-hover: #059669;
+    --success-light: #ecfdf5;
+    
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    
+    /* Tailwind Standard Shadows & Radius */
+    --radius-xl: 16px;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    
+    --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+    --shadow-hover: 0 12px 28px -4px rgba(79, 70, 229, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
 }
 
 /* ===========================
-   RESET & BASE
+   RESET & GLOBAL APPAREANCE
 =========================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
+    background-color: var(--bg-app);
+    color: var(--text-body);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
 
+/* Outer Global Container (Sabhi Sections Me Uniform Alignment Rakhta Hai) */
+.header, 
+.tabs, 
+.filters, 
+.action-bar, 
+#content,
+.filters + div {
+    max-width: 1320px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 /* ===========================
-   HEADER
+   HEADER (GRADIENT BANNER)
 =========================== */
 .header {
     width: 100%;
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-    color: #fff;
-    padding: 20px 32px;
+    background: var(--brand-gradient);
+    color: #ffffff;
+    padding: 24px 32px;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     display: flex;
     align-items: center;
     gap: 20px;
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.4);
 }
 
 .logo img {
-    width: 64px;
-    height: 64px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    background: #fff;
+    background: #ffffff;
     padding: 3px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     object-fit: cover;
 }
 
 .school-details h1 {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 26px;
+    font-weight: 800;
     letter-spacing: -0.02em;
 }
 
 .school-details p {
-    margin-top: 2px;
     font-size: 14px;
     color: rgba(255, 255, 255, 0.85);
-    font-weight: 400;
+    font-weight: 500;
 }
 
 /* ===========================
-   TABS
+   NAVIGATION TABS
 =========================== */
 .tabs {
     display: flex;
-    background: #fff;
-    border-bottom: 1px solid var(--border-color);
-    padding: 0 20px;
+    background: transparent;
+    padding: 20px 32px 0 32px;
+    gap: 12px;
 }
 
 .tabs button {
-    flex: 1;
-    max-width: 240px;
-    border: none;
-    background: transparent;
-    padding: 16px 20px;
+    flex: 0 1 200px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    padding: 12px 20px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-muted);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: var(--transition-fast);
-    position: relative;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .tabs button:hover {
-    color: var(--primary-color);
+    color: var(--primary);
     background: var(--primary-light);
+    border-color: #c7d2fe;
 }
 
-/* Tab indicator effect */
-.tabs button.active, 
+.tabs button.active,
 .tabs button:focus {
-    color: var(--primary-color);
-}
-
-.tabs button.active::after,
-.tabs button:focus::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--primary-color);
-    border-radius: 3px 3px 0 0;
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.4);
 }
 
 /* ===========================
-   FILTERS
+   FILTER BAR
 =========================== */
 .filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
-    padding: 24px 32px;
-    background: transparent;
+    padding: 20px 32px;
 }
 
 .filters select,
 .filters input {
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--radius-lg);
     outline: none;
     font-size: 14px;
-    color: var(--text-main);
-    background-color: #fff;
-    transition: var(--transition-fast);
-    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+    color: var(--text-heading);
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .filters select:focus,
 .filters input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-}
-
-.filters input::placeholder {
-    color: var(--text-muted);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
 }
 
 /* ===========================
-   ACTION TOOLBAR (Select All & Print Button)
+   SELECT ALL & PRINT TOOLBAR
 =========================== */
-
-/* Print button aur Select All ke container ko properly align karne ke liye */
 .action-bar, 
 #content > div:first-child,
 .filters + div {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Ya 'center' agar ekdum beech me chahiye */
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
     background: #ffffff;
-    padding: 12px 24px;
-    margin: 0 32px 20px 32px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+    padding: 14px 28px;
+    margin-bottom: 24px !important;
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-card);
 }
 
-/* Checkbox aur Select All text alignment */
-.action-bar label,
-#content label {
+.action-bar label, #content label {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-heading);
     cursor: pointer;
-    user-select: none;
 }
 
-/* Custom Styled Checkbox */
 .action-bar input[type="checkbox"],
 #content input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-color);
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
     cursor: pointer;
-    border-radius: 4px;
 }
 
-/* Print Selected Reports Button Enhancement */
-.btn-print,
-button[onclick*="print"],
-.action-bar .btn,
-.filters + div .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #059669; /* Soft Professional Green */
-    color: #ffffff;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    border: none;
-    cursor: pointer;
-    transition: var(--transition-fast);
-    box-shadow: var(--shadow-sm);
-}
-
-.btn-print:hover,
-button[onclick*="print"]:hover,
-.action-bar .btn:hover {
-    background: #047857;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .action-bar, 
-    #content > div:first-child,
-    .filters + div {
-        margin: 0 16px 16px 16px;
-        justify-content: center;
-        text-align: center;
-        flex-direction: column;
-    }
-}
 /* ===========================
-   ATTENDANCE CARD (STUDENT-CARD)
+   MAIN CARDS LIST CONTAINER
 =========================== */
-.student-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    margin-bottom: 16px;
-    padding: 20px 24px;
+#content {
+    padding: 0 32px 32px 32px;
+}
+
+/* Attendance Card & Educational Card Uniform Style */
+.student-card, .edu-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 20px;
+    padding: 20px 28px;
     display: flex;
     align-items: center;
     gap: 20px;
-    transition: var(--transition-fast);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.student-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    border-color: #cbd5e1;
+/* Hover Lift Effect */
+.student-card:hover, .edu-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    border-color: #c7d2fe;
 }
 
-.student-card img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
-}
-
-.student-info {
-    flex: 1;
-}
-
-.student-info h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-main);
-    letter-spacing: -0.01em;
-}
-
-.student-info p {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-top: 4px;
-}
-
-/* ===========================
-   EDUCATIONAL REPORT CARD (EDU-CARD)
-=========================== */
-.edu-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-fast);
-}
-
-.edu-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    border-color: #cbd5e1;
-}
-
-.edu-left {
-    width: 80px;
-    display: flex;
-    align-items: center;
-}
-
-.edu-photo {
+/* Student Photos */
+.student-card img, .edu-photo {
     width: 72px;
     height: 72px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--primary-light);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 3px solid #e0e7ff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
-.edu-center {
+.student-info, .edu-center {
     flex: 1;
-    padding: 0 24px;
 }
 
-.edu-name {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--text-main);
+.student-info h3, .edu-name {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-heading);
     letter-spacing: -0.01em;
 }
 
-.edu-id,
-.edu-class {
-    font-size: 14px;
+.student-info p, .edu-id, .edu-class {
     color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
     margin-top: 4px;
-    font-weight: 500;
+}
+
+/* ===========================
+   TAILWIND STYLE BUTTONS
+=========================== */
+.btn, .edu-btn, .btn-print, button[onclick*="print"] {
+    border: none;
+    padding: 12px 22px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Blue Submit Buttons */
+.btn-primary, .submit-btn {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.btn-primary:hover, .submit-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+/* Vibrant Emerald Green Buttons */
+.btn-success, .history-btn, .btn-print, button[onclick*="print"] {
+    background: var(--success);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-success:hover, .history-btn:hover, .btn-print:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
 }
 
 .edu-right {
@@ -356,88 +309,28 @@ button[onclick*="print"]:hover,
     gap: 10px;
 }
 
-/* ===========================
-   BUTTONS
-=========================== */
-.btn, .edu-btn {
-    border: none;
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: var(--transition-fast);
-    box-shadow: var(--shadow-sm);
-}
-
-.btn:hover, .edu-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-}
-
-.btn:active, .edu-btn:active {
-    transform: translateY(0);
-}
-
-.btn-primary, .submit-btn {
-    background: var(--primary-color);
-}
-.btn-primary:hover, .submit-btn:hover {
-    background: var(--primary-hover);
-}
-
-.btn-success, .history-btn {
-    background: var(--success-color);
-}
-.btn-success:hover, .history-btn:hover {
-    background: var(--success-hover);
-}
-
-.btn-danger {
-    background: var(--danger-color);
-}
-.btn-danger:hover {
-    background: var(--danger-hover);
-}
-
 .edu-btn {
-    min-width: 160px;
+    min-width: 170px;
 }
 
 /* ===========================
-   TOGGLE SWITCH (ATTENDANCE)
+   ATTENDANCE TOGGLE SWITCH
 =========================== */
-.student-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-
 .switch {
     position: relative;
     display: inline-block;
-    width: 52px;
-    height: 28px;
+    width: 54px;
+    height: 30px;
 }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.switch input { opacity: 0; width: 0; height: 0; }
 
 .slider {
     position: absolute;
     inset: 0;
     background: #cbd5e1;
     border-radius: 30px;
-    transition: var(--transition-fast);
+    transition: 0.3s;
     cursor: pointer;
 }
 
@@ -446,16 +339,16 @@ button[onclick*="print"]:hover,
     position: absolute;
     width: 22px;
     height: 22px;
-    left: 3px;
-    top: 3px;
-    background: #fff;
+    left: 4px;
+    top: 4px;
+    background: #ffffff;
     border-radius: 50%;
-    transition: var(--transition-fast);
+    transition: 0.3s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .switch input:checked + .slider {
-    background: var(--success-color);
+    background: var(--success);
 }
 
 .switch input:checked + .slider:before {
@@ -463,147 +356,43 @@ button[onclick*="print"]:hover,
 }
 
 /* ===========================
-   MODAL & FORM
+   MODAL & POPUPS
 =========================== */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
 .modal-content {
-    background: #fff;
+    background: #ffffff;
     width: 90%;
     max-width: 650px;
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color);
-}
-
-#closeModal {
-    float: right;
-    cursor: pointer;
-    font-size: 22px;
-    color: var(--text-muted);
-    transition: var(--transition-fast);
-    line-height: 1;
-}
-
-#closeModal:hover {
-    color: var(--danger-color);
-}
-
-.form-group {
-    margin: 18px 0;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-main);
-}
-
-.form-group textarea {
-    width: 100%;
-    min-height: 110px;
-    resize: vertical;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    outline: none;
-    transition: var(--transition-fast);
-}
-
-.form-group textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* ===========================
-   LOADER & TOAST
-=========================== */
-.loader {
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--primary-color);
-    z-index: 9999;
-}
-
-#toast {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    background: var(--text-main);
-    color: #fff;
-    padding: 14px 24px;
-    border-radius: var(--radius-md);
-    display: none;
-    z-index: 9999;
-    box-shadow: var(--shadow-lg);
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* ===========================
    RESPONSIVE DESIGN
 =========================== */
 @media (max-width: 768px) {
-    .header {
+    .header, .tabs, .filters, #content {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .student-card, .edu-card {
         flex-direction: column;
         text-align: center;
-        padding: 20px 16px;
     }
 
-    .filters, #content {
-        padding: 16px;
-    }
-
-    .edu-card {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
-
-    .edu-center {
-        padding: 16px 0;
-    }
-
-    .edu-right {
+    .edu-right, .edu-btn {
         width: 100%;
-    }
-
-    .edu-btn {
-        width: 100%;
-    }
-
-    .student-card {
-        padding: 16px;
     }
 }
