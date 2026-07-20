@@ -2,7 +2,7 @@
  * attendance.js
  *************************************************/
 
-let activeModule = "attendance";
+
 
 let attendanceStudents = [];
 
@@ -69,7 +69,7 @@ function loadCurrentSession() {
  *************************************************/
 
 async function loadAttendance(){
-    if(activeModule !== "attendance") return;
+   
 
     const session = document.getElementById("session").value;
 
