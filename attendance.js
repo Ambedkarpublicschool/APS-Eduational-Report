@@ -358,8 +358,8 @@ function attendanceCard(student) {
     <div class="student-card">
 
         <div class="student-photo">
-            <img src="${student.photo || ''}"
-                 onerror="this.src='https://via.placeholder.com/60'">
+          <img src="${student.photo || ''}"
+     onerror="this.onerror=null;this.src='default-user.png';">
         </div>
 
         <div class="student-info">
