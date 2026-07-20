@@ -1,35 +1,40 @@
-/* Import Google Font */
+/* Tailwind-Inspired Fonts & Colors System */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* ===========================
-   THEME VARIABLES
-=========================== */
 :root {
+    /* Rich Vibrant Theme Colors */
     --brand-gradient: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
     --bg-app: #f1f5f9;
     --card-bg: #ffffff;
     
+    /* Text Colors */
     --text-heading: #0f172a;
     --text-body: #334155;
     --text-muted: #64748b;
     
+    /* Dynamic Accent Colors */
     --primary: #4f46e5;
     --primary-hover: #4338ca;
     --primary-light: #eef2ff;
     
     --success: #10b981;
     --success-hover: #059669;
+    --success-light: #ecfdf5;
     
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    
+    /* Tailwind Standard Shadows & Radius */
     --radius-xl: 16px;
     --radius-lg: 12px;
     --radius-md: 8px;
     
-    --shadow-card: 0 4px 18px -2px rgba(15, 23, 42, 0.05);
-    --shadow-hover: 0 10px 25px -4px rgba(79, 70, 229, 0.12);
+    --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+    --shadow-hover: 0 12px 28px -4px rgba(79, 70, 229, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
 }
 
 /* ===========================
-   RESET & BASE LAYOUT
+   RESET & GLOBAL APPAREANCE
 =========================== */
 * {
     margin: 0;
@@ -45,76 +50,83 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Master Wrapper - Ye ensure karega ki Header se leke Cards tak sab EK HI PADDED BOX me rahein */
+/* Outer Global Container (Sabhi Sections Me Uniform Alignment Rakhta Hai) */
 .header, 
 .tabs, 
 .filters, 
-.action-bar,
-.filters + div,
-#content {
-    width: 100%;
-    max-width: 1280px;
+.action-bar, 
+#content,
+.filters + div {
+    max-width: 1320px;
     margin-left: auto !important;
     margin-right: auto !important;
-    padding-left: 24px;
-    padding-right: 24px;
 }
 
 /* ===========================
-   HEADER BANNER
+   HEADER (GRADIENT BANNER)
 =========================== */
 .header {
+    width: 100%;
     background: var(--brand-gradient);
     color: #ffffff;
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding: 24px 32px;
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     display: flex;
     align-items: center;
     gap: 20px;
-    box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.3);
-    margin-bottom: 8px !important;
+    box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.4);
 }
 
 .logo img {
-    width: 64px;
-    height: 64px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     background: #ffffff;
     padding: 3px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     object-fit: cover;
 }
 
 .school-details h1 {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
+    letter-spacing: -0.02em;
 }
 
 .school-details p {
     font-size: 14px;
-    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
 }
 
 /* ===========================
-   TABS
+   NAVIGATION TABS
 =========================== */
 .tabs {
     display: flex;
-    padding-top: 16px;
+    background: transparent;
+    padding: 20px 32px 0 32px;
     gap: 12px;
 }
 
 .tabs button {
-    flex: 0 1 180px;
+    flex: 0 1 200px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
-    padding: 12px 18px;
-    font-size: 14px;
+    padding: 12px 20px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-muted);
     border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.tabs button:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+    border-color: #c7d2fe;
 }
 
 .tabs button.active,
@@ -122,117 +134,112 @@ body {
     background: var(--primary);
     color: #ffffff;
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.4);
 }
 
 /* ===========================
-   FILTERS GRID
+   FILTER BAR
 =========================== */
 .filters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
-    padding-top: 20px;
-    padding-bottom: 16px;
+    padding: 20px 32px;
 }
 
 .filters select,
 .filters input {
-    width: 100%;
-    padding: 12px 16px;
+    padding: 12px 18px;
     border: 1.5px solid #e2e8f0;
     border-radius: var(--radius-lg);
     outline: none;
     font-size: 14px;
     font-weight: 600;
-    background: #ffffff;
     color: var(--text-heading);
+    background-color: #ffffff;
+    transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .filters select:focus,
 .filters input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
 }
 
 /* ===========================
-   SELECT ALL & PRINT BAR (EXACT FIXED ALIGNMENT)
+   SELECT ALL & PRINT TOOLBAR
 =========================== */
 .action-bar, 
-.filters + div,
-#content > div:first-child {
+#content > div:first-child,
+.filters + div {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
     background: #ffffff;
-    padding: 14px 20px !important;
-    margin-top: 4px !important;
-    margin-bottom: 20px !important;
+    padding: 14px 28px;
+    margin-bottom: 24px !important;
     border-radius: var(--radius-lg);
     border: 1px solid #e2e8f0;
     box-shadow: var(--shadow-card);
 }
 
-.action-bar label, #content label, .filters + div label {
+.action-bar label, #content label {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-heading);
     cursor: pointer;
 }
 
 .action-bar input[type="checkbox"],
-.filters + div input[type="checkbox"],
 #content input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     accent-color: var(--primary);
     cursor: pointer;
 }
 
 /* ===========================
-   CARDS CONTAINER (#content)
+   MAIN CARDS LIST CONTAINER
 =========================== */
 #content {
-    padding-top: 0;
-    padding-bottom: 32px;
+    padding: 0 32px 32px 32px;
 }
 
-/* Reset inner paddings for content children */
-#content > div {
-    width: 100%;
-}
-
+/* Attendance Card & Educational Card Uniform Style */
 .student-card, .edu-card {
     background: var(--card-bg);
     border-radius: var(--radius-xl);
     border: 1px solid #e2e8f0;
     box-shadow: var(--shadow-card);
-    margin-bottom: 16px;
-    padding: 18px 24px;
+    margin-bottom: 20px;
+    padding: 20px 28px;
     display: flex;
     align-items: center;
     gap: 20px;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Hover Lift Effect */
 .student-card:hover, .edu-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-hover);
     border-color: #c7d2fe;
 }
 
+/* Student Photos */
 .student-card img, .edu-photo {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #e0e7ff;
+    border: 3px solid #e0e7ff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
 .student-info, .edu-center {
@@ -240,24 +247,25 @@ body {
 }
 
 .student-info h3, .edu-name {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 800;
     color: var(--text-heading);
+    letter-spacing: -0.01em;
 }
 
 .student-info p, .edu-id, .edu-class {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 /* ===========================
-   BUTTONS
+   TAILWIND STYLE BUTTONS
 =========================== */
 .btn, .edu-btn, .btn-print, button[onclick*="print"] {
     border: none;
-    padding: 10px 20px;
+    padding: 12px 22px;
     border-radius: var(--radius-lg);
     cursor: pointer;
     font-size: 14px;
@@ -269,41 +277,114 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Blue Submit Buttons */
 .btn-primary, .submit-btn {
     background: var(--primary);
     color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .btn-primary:hover, .submit-btn:hover {
     background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
+/* Vibrant Emerald Green Buttons */
 .btn-success, .history-btn, .btn-print, button[onclick*="print"] {
     background: var(--success);
     color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
 .btn-success:hover, .history-btn:hover, .btn-print:hover {
     background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
 }
 
 .edu-right {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .edu-btn {
-    min-width: 160px;
+    min-width: 170px;
 }
 
 /* ===========================
-   RESPONSIVE (MOBILE)
+   ATTENDANCE TOGGLE SWITCH
+=========================== */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 54px;
+    height: 30px;
+}
+
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 30px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 4px;
+    top: 4px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.switch input:checked + .slider {
+    background: var(--success);
+}
+
+.switch input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* ===========================
+   MODAL & POPUPS
+=========================== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 650px;
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
 =========================== */
 @media (max-width: 768px) {
-    .header, .tabs, .filters, .action-bar, .filters + div, #content {
-        padding-left: 16px !important;
-        padding-right: 16px !important;
+    .header, .tabs, .filters, #content {
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .student-card, .edu-card {
