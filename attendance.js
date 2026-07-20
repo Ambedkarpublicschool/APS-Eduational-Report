@@ -22,6 +22,14 @@ async function initializeAttendance() {
 
     activeModule = "attendance";
 
+    const bar=document.getElementById("reportActionBar");
+
+if(bar){
+
+    bar.style.display="none";
+
+}
+
     loadCurrentSession();
 
     await loadClasses();
