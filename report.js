@@ -325,8 +325,6 @@ async function saveEducationalReport(){
 
 async function viewEducationalHistory(rowNumber){
 
-    console.log("Row Number :", rowNumber);
-
     const history = await getStudentHistory(rowNumber);
 
     if(!history){
@@ -334,24 +332,154 @@ async function viewEducationalHistory(rowNumber){
         return;
     }
 
-    document.getElementById("modalTitle").innerHTML =
-        "Educational History";
+    const student = getReportStudent(rowNumber);
 
-    document.getElementById("learning").value =
-        history.learning || "";
+    const win = window.open("", "_blank");
 
-    document.getElementById("writing").value =
-        history.writing || "";
+    win.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
 
-    document.getElementById("cleanliness").value =
-        history.cleanliness || "";
+<title>Educational Report</title>
 
-    document.getElementById("studyMaterial").value =
-        history.studyMaterial || "";
+<style>
 
-    document.getElementById("parentReaction").value =
-        history.parentReaction || "";
+@page{
+    size:A4 landscape;
+    margin:10mm;
+}
 
-    document.getElementById("reportModal").style.display = "flex";
+body{
+    font-family:Arial,sans-serif;
+    margin:0;
+    padding:15px;
+    font-size:13px;
+}
+
+#printBtn{
+    position:fixed;
+    right:20px;
+    top:20px;
+    padding:10px 20px;
+    font-size:15px;
+    cursor:pointer;
+}
+
+h2{
+    margin:0;
+    text-align:center;
+}
+
+h3{
+    margin:5px 0 20px;
+    text-align:center;
+    font-weight:normal;
+}
+
+.student{
+    border:1px solid #000;
+    padding:8px;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+}
+
+th,td{
+    border:1px solid #000;
+    padding:8px;
+    vertical-align:top;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+th{
+    background:#eee;
+}
+
+@media print{
+
+    #printBtn{
+        display:none;
+    }
+
+    body{
+        margin:0;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<button id="printBtn" onclick="window.print()">
+🖨 Print Report
+</button>
+
+<h2>AMBEDKAR PUBLIC SCHOOL</h2>
+
+<h3>Educational Monitoring Report</h3>
+
+<div class="student">
+
+<b>Student :</b> ${student.studentName}
+&nbsp;&nbsp;&nbsp;
+
+<b>ID :</b> ${student.studentId}
+&nbsp;&nbsp;&nbsp;
+
+<b>Class :</b> ${student.currentClass}
+&nbsp;&nbsp;&nbsp;
+
+<b>Section :</b> ${student.section}
+
+</div>
+
+<table>
+
+<tr>
+
+<th>Learning</th>
+
+<th>Writing</th>
+
+<th>Presence & Cleanliness</th>
+
+<th>Study Material</th>
+
+<th>Parent Reaction</th>
+
+</tr>
+
+<tr>
+
+<td>${(history.learning||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(history.writing||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(history.cleanliness||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(history.studyMaterial||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(history.parentReaction||"").replace(/\n/g,"<br>")}</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+`);
+
+    win.document.close();
 
 }
