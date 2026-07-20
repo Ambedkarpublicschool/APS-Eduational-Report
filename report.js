@@ -556,19 +556,19 @@ function toggleSelectAllReports(checked){
 
 }
 
-function printSelectedReports(){
+async function printSelectedReports(){
 
     if(selectedReports.length==0){
 
-        showToast(
-            "Please Select Student",
-            false
-        );
+        showToast("Please Select Student",false);
 
         return;
 
     }
 
-    console.log(selectedReports);
+    const students =
+        await getMultipleStudentHistory(selectedReports);
+
+    console.log(students);
 
 }
