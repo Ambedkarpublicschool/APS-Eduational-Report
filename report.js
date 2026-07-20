@@ -15,26 +15,6 @@ let reportSearch = "";
  * Init
  **************************************************/
 
-async function initEducationalReport() {
-
-    console.log("Report Init");
-    activeModule = "report";
-
-    document.getElementById("attendanceTab")
-        .classList.remove("active");
-
-    document.getElementById("reportTab")
-        .classList.add("active");
-
-    reportClass = document.getElementById("class").value;
-
-    reportSection = document.getElementById("section").value;
-
-    reportSearch = "";
-
-    await loadEducationalStudents();
-
-}
 
 
 /**************************************************
