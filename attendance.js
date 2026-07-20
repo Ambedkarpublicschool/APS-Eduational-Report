@@ -397,3 +397,18 @@ function attendanceCard(student) {
     </div>
     `;
 }
+
+
+document
+.getElementById("attendanceTab")
+.addEventListener("click", async function(){
+
+    document.getElementById("reportTab")
+        .classList.remove("active");
+
+    document.getElementById("attendanceTab")
+        .classList.add("active");
+
+    await initializeAttendance();
+
+});
