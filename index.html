@@ -79,6 +79,36 @@
 
     </section>
 
+    <div id="reportActionBar" class="report-action-bar" style="display:none;">
+
+    <label>
+
+        <input
+            type="checkbox"
+            id="selectAllReports"
+            onchange="toggleSelectAllReports(this.checked)">
+
+        Select All
+
+    </label>
+
+    <span>
+
+        Selected :
+        <b id="selectedCount">0</b>
+
+    </span>
+
+    <button
+        class="btn btn-success"
+        onclick="printSelectedReports()">
+
+        🖨 Print Selected Reports
+
+    </button>
+
+</div>
+
     <!-- Content -->
 
     <main id="content">
