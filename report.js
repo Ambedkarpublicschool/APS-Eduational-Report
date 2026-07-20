@@ -26,6 +26,8 @@ async function initEducationalReport() {
     document.getElementById("reportTab")
         .classList.add("active");
 
+    document.getElementById("reportActionBar").style.display="flex";
+
     reportClass = document.getElementById("class").value;
 
     reportSection = document.getElementById("section").value;
