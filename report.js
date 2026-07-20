@@ -440,6 +440,9 @@ th{
 &nbsp;&nbsp;&nbsp;
 
 <b>Section :</b> ${student.section}
+&nbsp;&nbsp;&nbsp;
+
+<b>Mobile :</b> ${student.primaryMobile}
 
 </div>
 
