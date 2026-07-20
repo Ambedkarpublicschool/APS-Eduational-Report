@@ -250,3 +250,13 @@ function getSections(className) {
     });
 
 }
+
+function getStudentHistory(rowNumber){
+
+    return apiGet("getStudentHistory",{
+
+        rowNumber
+
+    });
+
+}
