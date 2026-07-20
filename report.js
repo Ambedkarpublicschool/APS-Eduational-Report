@@ -325,6 +325,8 @@ async function saveEducationalReport(){
 
 async function viewEducationalHistory(rowNumber){
 
+    console.log("Row Number :", rowNumber);
+
     const history = await getStudentHistory(rowNumber);
 
     if(!history){
