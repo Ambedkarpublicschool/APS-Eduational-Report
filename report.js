@@ -533,3 +533,42 @@ function updateReportSelection(){
     }
 
 }
+
+function toggleSelectAllReports(checked){
+
+    selectedReports=[];
+
+    document
+    .querySelectorAll(".report-check")
+    .forEach(chk=>{
+
+        chk.checked=checked;
+
+        if(checked){
+
+            selectedReports.push(Number(chk.value));
+
+        }
+
+    });
+
+    updateReportSelection();
+
+}
+
+function printSelectedReports(){
+
+    if(selectedReports.length==0){
+
+        showToast(
+            "Please Select Student",
+            false
+        );
+
+        return;
+
+    }
+
+    console.log(selectedReports);
+
+}
