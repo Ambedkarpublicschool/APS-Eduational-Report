@@ -10,6 +10,8 @@ let reportSection = "";
 
 let reportSearch = "";
 
+let selectedStudent = null;
+
 /**************************************************
  * Init
  **************************************************/
@@ -255,3 +257,29 @@ document
 .getElementById("reportTab")
 .addEventListener("click", initEducationalReport);
 
+function openSubmitReport(rowNumber){
+
+    selectedStudent =
+        getReportStudent(rowNumber);
+
+    document.getElementById("learning").value="";
+    document.getElementById("writing").value="";
+    document.getElementById("cleanliness").value="";
+    document.getElementById("studyMaterial").value="";
+    document.getElementById("parentReaction").value="";
+
+    document.getElementById("modalTitle").innerHTML =
+        "Educational Report - " +
+        selectedStudent.studentName;
+
+    document.getElementById("reportModal")
+        .style.display="flex";
+
+}
+
+function closeReportModal(){
+
+    document.getElementById("reportModal")
+        .style.display="none";
+
+}
