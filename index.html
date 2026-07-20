@@ -97,9 +97,50 @@
 
             </span>
 
-            <div id="modalBody">
+<span id="closeModal">&times;</span>
 
-            </div>
+<h2 id="modalTitle">Submit Educational Report</h2>
+
+<div class="form-group">
+<label>Learning</label>
+<textarea id="learning"></textarea>
+</div>
+
+<div class="form-group">
+<label>Writing</label>
+<textarea id="writing"></textarea>
+</div>
+
+<div class="form-group">
+<label>Presence & Cleanness</label>
+<textarea id="cleanliness"></textarea>
+</div>
+
+<div class="form-group">
+<label>Study Material Availability</label>
+<textarea id="studyMaterial"></textarea>
+</div>
+
+<div class="form-group">
+<label>Parent Reaction</label>
+<textarea id="parentReaction"></textarea>
+</div>
+
+<div class="modal-footer">
+
+<button
+class="btn btn-danger"
+onclick="closeReportModal()">
+Cancel
+</button>
+
+<button
+class="btn btn-success"
+onclick="saveEducationalReport()">
+Save Report
+</button>
+
+</div>
 
         </div>
 
