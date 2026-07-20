@@ -49,11 +49,13 @@ async function loadEducationalStudents() {
 
     try {
 
-        reportStudents =
-            await getEducationalHistory(
-                reportClass,
-                reportSection
-            );
+const session = document.getElementById("session").value;
+
+reportStudents = await getEducationalHistory(
+    session,
+    reportClass,
+    reportSection
+);
 
         renderEducationalStudents();
 
