@@ -265,10 +265,8 @@ async function getStudentHistory(rowNumber){
 
 async function getMultipleStudentHistory(rows){
 
-    return await apiGet("getMultipleStudentHistory",{
-
-        rows:JSON.stringify(rows)
-
+    return await apiPost("getMultipleStudentHistory",{
+        rows
     });
 
 }
