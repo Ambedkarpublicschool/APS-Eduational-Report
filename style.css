@@ -54,12 +54,24 @@ body {
 .header, 
 .tabs, 
 .filters, 
+/* ===========================
+   SELECT ALL & PRINT TOOLBAR FIX
+=========================== */
 .action-bar, 
-#content,
+#content > div:first-child,
 .filters + div {
-    max-width: 1320px;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #ffffff;
+    padding: 14px 28px;
+    margin: 0 auto 20px auto !important; /* Fixed: Extra side margins hata diye hain */
+    width: 100%;                          /* Fixed: Filters aur Cards jitni exact width */
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-card);
 }
 
 /* ===========================
