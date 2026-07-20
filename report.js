@@ -12,6 +12,8 @@ let reportSearch = "";
 
 let selectedStudent = null;
 
+let selectedReports = [];
+
 /**************************************************
  * Init
  **************************************************/
@@ -145,14 +147,20 @@ const photo = student.photo && student.photo.trim() !== ""
 
     <div class="edu-card">
 
-        <div class="edu-left">
+<div class="edu-left">
 
-            <img
-                src="${photo}"
-                class="edu-photo"
-                loading="lazy">
+    <input
+        type="checkbox"
+        class="report-check"
+        value="${student.rowNumber}"
+        onchange="toggleReportSelection(${student.rowNumber},this.checked)">
 
-        </div>
+    <img
+        src="${photo}"
+        class="edu-photo"
+        loading="lazy">
+
+</div>
 
         <div class="edu-center">
 
