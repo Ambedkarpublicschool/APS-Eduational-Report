@@ -251,12 +251,14 @@ function getSections(className) {
 
 }
 
-function getStudentHistory(rowNumber){
+async function getStudentHistory(rowNumber){
 
-    return apiGet("getStudentHistory",{
-
+    const result = await apiGet("getStudentHistory",{
         rowNumber
-
     });
+
+    console.log("History API :", result);
+
+    return result;
 
 }
