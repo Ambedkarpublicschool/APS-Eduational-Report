@@ -171,12 +171,8 @@ body {
    SELECT ALL & PRINT TOOLBAR
 =========================== */
 .action-bar, 
-#content > div:first-child,
 .filters + div {
-    max-width: calc(1320px - 64px); /* Dono side se 32px-32px chhota karne ke liye */
-    width: calc(100% - 64px);
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
