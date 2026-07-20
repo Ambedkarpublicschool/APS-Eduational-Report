@@ -162,14 +162,89 @@ body {
 }
 
 /* ===========================
-   CONTENT & CONTAINER
+   ACTION TOOLBAR (Select All & Print Button)
 =========================== */
-#content {
-    padding: 0 32px 32px 32px;
-    max-width: 1400px;
-    margin: 0 auto;
+
+/* Print button aur Select All ke container ko properly align karne ke liye */
+.action-bar, 
+#content > div:first-child,
+.filters + div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ya 'center' agar ekdum beech me chahiye */
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #ffffff;
+    padding: 12px 24px;
+    margin: 0 32px 20px 32px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
+/* Checkbox aur Select All text alignment */
+.action-bar label,
+#content label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Custom Styled Checkbox */
+.action-bar input[type="checkbox"],
+#content input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Print Selected Reports Button Enhancement */
+.btn-print,
+button[onclick*="print"],
+.action-bar .btn,
+.filters + div .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #059669; /* Soft Professional Green */
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-print:hover,
+button[onclick*="print"]:hover,
+.action-bar .btn:hover {
+    background: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .action-bar, 
+    #content > div:first-child,
+    .filters + div {
+        margin: 0 16px 16px 16px;
+        justify-content: center;
+        text-align: center;
+        flex-direction: column;
+    }
+}
 /* ===========================
    ATTENDANCE CARD (STUDENT-CARD)
 =========================== */
