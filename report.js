@@ -569,6 +569,261 @@ async function printSelectedReports(){
     const students =
         await getMultipleStudentHistory(selectedReports);
 
-    console.log(students);
+    if(!students || students.length==0){
+
+        showToast("No History Found",false);
+
+        return;
+
+    }
+
+    const win = window.open("", "_blank");
+
+    let html = `
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Educational Report</title>
+
+<style>
+
+@page{
+
+    size:A4 landscape;
+
+    margin:10mm;
 
 }
+
+body{
+
+    font-family:Arial,sans-serif;
+
+    margin:0;
+
+    padding:15px;
+
+    font-size:13px;
+
+}
+
+#printBtn{
+
+    position:fixed;
+
+    top:20px;
+
+    right:20px;
+
+    padding:10px 18px;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+}
+
+.page{
+
+    page-break-after:always;
+
+}
+
+.school{
+
+    text-align:center;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+}
+
+.title{
+
+    text-align:center;
+
+    margin-top:5px;
+
+    margin-bottom:15px;
+
+    font-size:18px;
+
+}
+
+.student{
+
+    border:1px solid #000;
+
+    padding:8px;
+
+    margin-bottom:15px;
+
+    font-size:14px;
+
+}
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    table-layout:fixed;
+
+}
+
+th{
+
+    border:1px solid #000;
+
+    padding:8px;
+
+    background:#f2f2f2;
+
+}
+
+td{
+
+    border:1px solid #000;
+
+    padding:8px;
+
+    vertical-align:top;
+
+    white-space:pre-wrap;
+
+    word-break:break-word;
+
+}
+
+@media print{
+
+    #printBtn{
+
+        display:none;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<button id="printBtn" onclick="window.print()">
+
+🖨 Print Report
+
+</button>
+
+`;
+
+
+    students.forEach((student,index)=>{
+
+html += `
+
+<div class="page">
+
+<div class="school">
+
+AMBEDKAR PUBLIC SCHOOL
+
+</div>
+
+<div class="title">
+
+Educational Monitoring Report
+
+</div>
+
+<div class="student">
+
+<b>Student :</b> ${student.studentName}
+
+&nbsp;&nbsp;&nbsp;
+
+<b>ID :</b> ${student.studentId}
+
+&nbsp;&nbsp;&nbsp;
+
+<b>Class :</b> ${student.currentClass}
+
+&nbsp;&nbsp;&nbsp;
+
+<b>Section :</b> ${student.section}
+
+&nbsp;&nbsp;&nbsp;
+
+<b>Mobile :</b> ${student.primaryMobile}
+
+</div>
+
+<table>
+
+<tr>
+
+<th>Learning</th>
+
+<th>Writing</th>
+
+<th>Presence & Cleanliness</th>
+
+<th>Study Material</th>
+
+<th>Parent Reaction</th>
+
+</tr>
+
+<tr>
+
+<td>${(student.learning||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(student.writing||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(student.cleanliness||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(student.studyMaterial||"").replace(/\n/g,"<br>")}</td>
+
+<td>${(student.parentReaction||"").replace(/\n/g,"<br>")}</td>
+
+</tr>
+
+</table>
+
+</div>
+
+`;
+
+});
+
+html += `
+
+</body>
+
+</html>
+
+`;
+
+win.document.open();
+
+win.document.write(html);
+
+win.document.close();
+
+// Print Dialog आने से पहले HTML Render होने दो
+setTimeout(()=>{
+
+    win.focus();
+
+},300);
+}    
