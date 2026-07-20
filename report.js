@@ -494,3 +494,40 @@ th{
     win.document.close();
 
 }
+
+function toggleReportSelection(rowNumber, checked){
+
+    if(checked){
+
+        if(!selectedReports.includes(rowNumber)){
+
+            selectedReports.push(rowNumber);
+
+        }
+
+    }else{
+
+        selectedReports =
+            selectedReports.filter(
+                r => r != rowNumber
+            );
+
+    }
+
+    updateReportSelection();
+
+}
+
+function updateReportSelection(){
+
+    const count =
+        document.getElementById("selectedCount");
+
+    if(count){
+
+        count.innerHTML =
+            selectedReports.length;
+
+    }
+
+}
