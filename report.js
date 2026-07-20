@@ -119,9 +119,9 @@ function renderEducationalStudents() {
 
 function createReportCard(student) {
 
-    const photo = student.photo && student.photo.trim() !== ""
-        ? student.photo
-        : "https://via.placeholder.com/90x90?text=Photo";
+const photo = student.photo && student.photo.trim() !== ""
+    ? student.photo
+    : "default-user.png";
 
     return `
 
