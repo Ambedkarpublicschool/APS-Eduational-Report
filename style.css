@@ -173,14 +173,15 @@ body {
 .action-bar, 
 #content > div:first-child,
 .filters + div {
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
     background: #ffffff;
-    padding: 14px 28px;
-    margin-bottom: 24px !important;
+    padding: 20px 32px !important;
+    margin: 0 0 24px 0 !important;
     border-radius: var(--radius-lg);
     border: 1px solid #e2e8f0;
     box-shadow: var(--shadow-card);
