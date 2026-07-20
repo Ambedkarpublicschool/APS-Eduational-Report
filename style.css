@@ -172,7 +172,10 @@ body {
 =========================== */
 .action-bar, 
 .filters + div {
-    width: 100%;
+    max-width: 1256px !important;
+    width: calc(100% - 64px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
