@@ -43,7 +43,7 @@ async function initEducationalReport() {
 
 async function loadEducationalStudents() {
 
-    console.log(students);
+
 
     showLoader();
 
