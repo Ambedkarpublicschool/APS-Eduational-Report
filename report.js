@@ -307,6 +307,8 @@ async function saveEducationalReport(){
 
     };
 
+    console.log(data);
+
     const result = await submitEducationalReport(data);
 
     if(result){
