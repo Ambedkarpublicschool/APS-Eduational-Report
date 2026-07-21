@@ -76,3 +76,48 @@ function renderDefaulters() {
     `;
 
 }
+
+/*************************************************
+ * Events
+ *************************************************/
+
+document
+.getElementById("defaulterTab")
+.addEventListener("click", async function () {
+
+    await initDefaulter();
+
+});
+
+
+document
+.getElementById("search")
+.addEventListener("input", async function () {
+
+    if (activeModule !== "defaulter") return;
+
+    await loadDefaulters();
+
+});
+
+
+document
+.getElementById("class")
+.addEventListener("change", async function () {
+
+    if (activeModule !== "defaulter") return;
+
+    await loadDefaulters();
+
+});
+
+
+document
+.getElementById("session")
+.addEventListener("change", async function () {
+
+    if (activeModule !== "defaulter") return;
+
+    await loadDefaulters();
+
+});
