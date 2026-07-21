@@ -18,9 +18,28 @@ let defaulterData = [];
 /*************************************************
  * Initialize
  *************************************************/
-function initDefaulter() {
+async function initDefaulter() {
 
-    loadDefaulters();
+    activeModule = "defaulter";
+
+    document.getElementById("attendanceTab")
+        .classList.remove("active");
+
+    document.getElementById("reportTab")
+        .classList.remove("active");
+
+    document.getElementById("defaulterTab")
+        .classList.add("active");
+
+    const bar = document.getElementById("reportActionBar");
+
+    if (bar) {
+
+        bar.style.display = "none";
+
+    }
+
+    await loadDefaulters();
 
 }
 
