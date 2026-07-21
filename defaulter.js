@@ -2,6 +2,17 @@
  * Fee Defaulter Module
  *************************************************/
 
+let activeModule = "attendance";
+
+let defaulterStudents = [];
+
+let defaulterSearch = "";
+
+
+/*************************************************
+ * Fee Defaulter Module
+ *************************************************/
+
 let defaulterData = [];
 
 /*************************************************
