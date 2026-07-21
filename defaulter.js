@@ -4,16 +4,10 @@
 
 let activeModule = "attendance";
 
-let defaulterStudents = [];
+let defaulterData = [];
 
 let defaulterSearch = "";
 
-
-/*************************************************
- * Fee Defaulter Module
- *************************************************/
-
-let defaulterData = [];
 
 /*************************************************
  * Initialize
