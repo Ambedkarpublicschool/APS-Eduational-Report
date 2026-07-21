@@ -54,7 +54,16 @@ async function loadDefaulters() {
         search
     );
 
-    if (!data) return;
+    if (!data || !data.success) {
+
+        showToast(
+            data?.message || "Unable to load fee defaulters",
+            false
+        );
+
+        return;
+
+    }
 
     defaulterData = data;
 
@@ -114,13 +123,13 @@ function renderDefaulters() {
                     </p>
 
                     <p>
-                        <b>Class :</b> ${student.currentClass}
+                        <b>Class :</b> ${student.className}
                         -
                         ${student.section}
                     </p>
 
                     <p>
-                        <b>Mobile :</b> ${student.primaryMobile}
+                        <b>Mobile :</b> ${student.mobile}
                     </p>
 
                     <p style="color:red;font-weight:bold;">
