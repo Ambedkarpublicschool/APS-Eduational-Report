@@ -14,6 +14,8 @@ let defaulterSearch = "";
  *************************************************/
 async function initDefaulter() {
 
+    console.log("Fee Defaulter Tab Clicked");
+
     activeModule = "defaulter";
 
     document.getElementById("attendanceTab")
@@ -41,6 +43,8 @@ async function initDefaulter() {
  * Load Data
  *************************************************/
 async function loadDefaulters() {
+
+    console.log("Loading Fee Defaulters...");
 
     const session = document.getElementById("session").value;
 
@@ -75,6 +79,8 @@ async function loadDefaulters() {
  * Render
  *************************************************/
 function renderDefaulters() {
+
+    console.log(defaulterData);
 
     const content = document.getElementById("content");
 
