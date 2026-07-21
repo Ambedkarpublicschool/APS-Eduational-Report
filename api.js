@@ -270,3 +270,22 @@ async function getMultipleStudentHistory(rows){
     });
 
 }
+
+
+
+/*************************************************
+ * Fee Defaulters
+ *************************************************/
+function getFeeDefaulters(session, className, search) {
+
+    return apiGet("getFeeDefaulters", {
+
+        session,
+
+        className,
+
+        search
+
+    });
+
+}
