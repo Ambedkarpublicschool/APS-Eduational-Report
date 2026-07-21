@@ -89,7 +89,6 @@ document
 
 });
 
-
 document
 .getElementById("search")
 .addEventListener("input", async function () {
@@ -100,7 +99,6 @@ document
 
 });
 
-
 document
 .getElementById("class")
 .addEventListener("change", async function () {
@@ -110,7 +108,6 @@ document
     await loadDefaulters();
 
 });
-
 
 document
 .getElementById("session")
