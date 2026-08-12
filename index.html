@@ -1,18 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Educational Monitoring System</title>
-
     <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
     <!-- Loader -->
@@ -22,171 +15,92 @@
 
     <!-- Header -->
     <header class="header">
-
-
-
         <div class="school-details">
-
             <h1 id="schoolName">Ambedkar Public School</h1>
-
             <p>Educational Monitoring System</p>
-
         </div>
-
     </header>
 
-    <!-- Navigation -->
-
-<nav class="tabs">
-
-    <button id="attendanceTab">
-        Attendance
-    </button>
-
-    <button id="reportTab">
-        Educational Report
-    </button>
-
-    <button id="defaulterTab">
-        Fee Defaulter
-    </button>
-
-</nav>
+    <!-- Navigation Tabs -->
+    <nav class="tabs">
+        <button id="attendanceTab" class="active">Attendance</button>
+        <button id="reportTab">Educational Report</button>
+        <button id="defaulterTab">Fee Defaulter</button>
+    </nav>
 
     <!-- Filters -->
-
     <section class="filters">
-
-        <select id="session">
-
-        </select>
-
-        <select id="class">
-
-        </select>
-
-        <select id="section">
-
-        </select>
-
-        <input
-
-            type="text"
-
-            id="search"
-
-            placeholder="Search Student">
-
+        <select id="session"></select>
+        <select id="class"></select>
+        <select id="section"></select>
+        <input type="text" id="search" placeholder="Search Student">
     </section>
 
+    <!-- Report Action Bar -->
     <div id="reportActionBar" class="report-action-bar" style="display:none;">
-
-    <label>
-
-        <input
-            type="checkbox"
-            id="selectAllReports"
-            onchange="toggleSelectAllReports(this.checked)">
-
-        Select All
-
-    </label>
-
-    <span>
-
-        Selected :
-        <b id="selectedCount">0</b>
-
-    </span>
-
-    <button
-        class="btn btn-success"
-        onclick="printSelectedReports()">
-
-        🖨 Print Selected Reports
-
-    </button>
-
-</div>
+        <label>
+            <input type="checkbox" id="selectAllReports" onchange="toggleSelectAllReports(this.checked)">
+            Select All
+        </label>
+        <span>Selected : <b id="selectedCount">0</b></span>
+        <button class="btn btn-success" onclick="printSelectedReports()">🖨 Print Selected Reports</button>
+    </div>
 
     <!-- Content -->
-
-    <main id="content">
-
-    </main>
+    <main id="content"></main>
 
     <!-- Report Modal -->
-
     <div id="reportModal" class="modal">
-
         <div class="modal-content">
+            <span id="closeModal" onclick="closeReportModal()">&times;</span>
+            <h2 id="modalTitle">Submit Educational Report</h2>
 
-<span id="closeModal">&times;</span>
+            <div class="form-group"><label>Learning</label><textarea id="learning"></textarea></div>
+            <div class="form-group"><label>Writing</label><textarea id="writing"></textarea></div>
+            <div class="form-group"><label>Presence & Cleanness</label><textarea id="cleanliness"></textarea></div>
+            <div class="form-group"><label>Study Material Availability</label><textarea id="studyMaterial"></textarea></div>
+            <div class="form-group"><label>Parent Reaction</label><textarea id="parentReaction"></textarea></div>
 
-<h2 id="modalTitle">Submit Educational Report</h2>
-
-<div class="form-group">
-<label>Learning</label>
-<textarea id="learning"></textarea>
-</div>
-
-<div class="form-group">
-<label>Writing</label>
-<textarea id="writing"></textarea>
-</div>
-
-<div class="form-group">
-<label>Presence & Cleanness</label>
-<textarea id="cleanliness"></textarea>
-</div>
-
-<div class="form-group">
-<label>Study Material Availability</label>
-<textarea id="studyMaterial"></textarea>
-</div>
-
-<div class="form-group">
-<label>Parent Reaction</label>
-<textarea id="parentReaction"></textarea>
-</div>
-
-<div class="modal-footer">
-
-<button
-class="btn btn-danger"
-onclick="closeReportModal()">
-Close
-</button>
-
-<button
-id="saveReportBtn"
-class="btn btn-success"
-onclick="saveEducationalReport()">
-Save Report
-</button>
-
-</div>
-
+            <div class="modal-footer" style="display:flex; justify-content:space-between;">
+                <button class="btn btn-danger" onclick="closeReportModal()">Close</button>
+                <button id="saveReportBtn" class="btn btn-success" onclick="saveEducationalReport()">Save Report</button>
+            </div>
         </div>
-
     </div>
 
     <!-- Toast -->
-
-    <div id="toast">
-
-    </div>
+    <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-weight:700;"></div>
 
     <script src="config.js"></script>
-
     <script src="api.js"></script>
-
     <script src="attendance.js"></script>
-
     <script src="report.js"></script>
-
     <script src="defaulter.js"></script>
 
-</body>
+    <!-- Mobile Back Button & Initial Router -->
+    <script>
+        window.addEventListener("DOMContentLoaded", async () => {
+            const hash = window.location.hash;
+            if (hash === "#report") {
+                await initEducationalReport(false);
+            } else if (hash === "#defaulter") {
+                await initDefaulter(false);
+            } else {
+                await initializeAttendance(false);
+            }
+        });
 
+        // Mobile Back Button Support (PopState History Navigation)
+        window.addEventListener("popstate", async (event) => {
+            const state = event.state;
+            if (state && state.module === "report") {
+                await initEducationalReport(false);
+            } else if (state && state.module === "defaulter") {
+                await initDefaulter(false);
+            } else {
+                await initializeAttendance(false);
+            }
+        });
+    </script>
+</body>
 </html>
