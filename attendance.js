@@ -1,422 +1,177 @@
 /*************************************************
- * attendance.js
+ * attendance.js (Optimized with State & History)
  *************************************************/
-
-
 
 let attendanceStudents = [];
-
 let filteredStudents = [];
+let activeModule = "attendance";
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    initializeAttendance();
-
-});
-
-/*************************************************
- * Initialize
- *************************************************/
-
-async function initializeAttendance() {
-
+async function initializeAttendance(pushHistory = true) {
     activeModule = "attendance";
+    
+    if (pushHistory) {
+        history.pushState({ module: "attendance" }, "", "#attendance");
+    }
 
-    const bar=document.getElementById("reportActionBar");
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+    document.getElementById("attendanceTab").classList.add("active");
 
-if(bar){
-
-    bar.style.display="none";
-
-}
+    const bar = document.getElementById("reportActionBar");
+    if (bar) bar.style.display = "none";
 
     loadCurrentSession();
-
     await loadClasses();
-
     await loadSections();
-
     await loadAttendance();
-
-    attachEvents();
-
 }
-
-/*************************************************
- * Default Session
- *************************************************/
 
 function loadCurrentSession() {
-
     const session = document.getElementById("session");
-
     const year = new Date().getFullYear();
-
     const month = new Date().getMonth() + 1;
-
-    let currentSession = "";
-
-    if(month >= 4){
-
-        currentSession = year + "-" + (year + 1);
-
-    }else{
-
-        currentSession = (year-1) + "-" + year;
-
-    }
-
-    session.innerHTML =
-
-    `<option value="${currentSession}">${currentSession}</option>`;
-
+    let currentSession = month >= 4 ? year + "-" + (year + 1) : (year - 1) + "-" + year;
+    session.innerHTML = `<option value="${currentSession}">${currentSession}</option>`;
 }
 
-/*************************************************
- * Load Attendance
- *************************************************/
-
-async function loadAttendance(){
-   
+async function loadAttendance() {
+    if (activeModule !== "attendance") return;
 
     const session = document.getElementById("session").value;
-
     const className = document.getElementById("class").value;
-
     const section = document.getElementById("section").value;
 
-    const students = await getAttendance(
+    const students = await getAttendance(session, className, section);
+    if (activeModule !== "attendance") return; // Prevent race conditions
 
-        session,
+    attendanceStudents = (students || []).map(student => ({
+        ...student,
+        present: student.attendance === "P"
+    }));
 
-        className,
-
-        section
-
-    );
-
-attendanceStudents = (students || []).map(student => ({
-
-    ...student,
-
-    present: student.attendance === "P"
-
-}));
-
-filteredStudents = [...attendanceStudents];
-
+    filteredStudents = [...attendanceStudents];
     renderAttendance();
-
 }
 
-/*************************************************
- * Render Students
- *************************************************/
-
-function renderAttendance(){
-     if(activeModule !== "attendance") return;
+function renderAttendance() {
+    if (activeModule !== "attendance") return;
 
     const container = document.getElementById("content");
-
-    if(filteredStudents.length==0){
-
-        container.innerHTML="<h2>No Student Found</h2>";
-
+    if (filteredStudents.length === 0) {
+        container.innerHTML = `<div class="empty" style="text-align:center; padding:40px; font-weight:700;">No Student Found</div>`;
         return;
-
     }
 
-    let html="";
-
-    filteredStudents.forEach(student=>{
-
+    let html = "";
+    filteredStudents.forEach(student => {
         html += attendanceCard(student);
-
     });
-
-
-
     container.innerHTML = html;
-
 }
 
-/*************************************************
- * Toggle Attendance
- *************************************************/
 async function toggleAttendance(studentId, checked) {
-
-    const student = attendanceStudents.find(
-        s => s.studentId === studentId
-    );
-
+    const student = attendanceStudents.find(s => s.studentId === studentId);
     if (!student) return;
 
-    // UI में तुरंत Toggle दिखे
     student.present = checked;
     student.attendance = checked ? "P" : "A";
 
-    const result = await submitAttendance([
-        {
-            rowNumber: student.rowNumber,
-            studentId: student.studentId,
-            present: checked
-        }
-    ]);
+    const result = await submitAttendance([{
+        rowNumber: student.rowNumber,
+        studentId: student.studentId,
+        present: checked
+    }]);
 
-if (result.success) {
-
-    student.totalPresent = result.students[0].totalPresent;
-    student.monthPresent = result.students[0].monthPresent;
-
-    renderAttendance();
-
-    showToast("Attendance Saved");
-
-}
-    else {
-
-        // Save Fail होने पर पुरानी स्थिति वापस कर दो
+    if (result && result.success) {
+        student.totalPresent = result.students[0].totalPresent;
+        student.monthPresent = result.students[0].monthPresent;
+        renderAttendance();
+        showToast("Attendance Saved");
+    } else {
         student.present = !checked;
         student.attendance = !checked ? "P" : "A";
-
         renderAttendance();
-
         showToast("Attendance Save Failed", false);
-
     }
-
 }
-
-
-/*************************************************
- * Submit Attendance
- *************************************************/
-
-async function submitAttendanceData() {
-
-    if (attendanceStudents.length == 0) {
-
-        showToast("No Students Found", false);
-
-        return;
-
-    }
-
-    const students = attendanceStudents.map(student => ({
-
-        rowNumber: student.rowNumber,
-
-        present: student.present === true
-
-    }));
-
-    const result = await submitAttendance(students);
-
-    if (result) {
-
-        showToast("Attendance Saved Successfully");
-
-        loadAttendance();
-
-    }
-
-}
-
-/*************************************************
- * Search Student
- *************************************************/
 
 function searchStudent() {
-
-    const keyword = document
-        .getElementById("search")
-        .value
-        .toLowerCase()
-        .trim();
-
-    filteredStudents = attendanceStudents.filter(student => {
-
-        return (
-
-            student.studentName.toLowerCase().includes(keyword)
-
-            ||
-
-            student.studentId.toLowerCase().includes(keyword)
-
-        );
-
-    });
-
+    const keyword = document.getElementById("search").value.toLowerCase().trim();
+    filteredStudents = attendanceStudents.filter(student => 
+        student.studentName.toLowerCase().includes(keyword) || 
+        student.studentId.toLowerCase().includes(keyword)
+    );
     renderAttendance();
-
 }
 
-/*************************************************
- * Events
- *************************************************/
-
-function attachEvents() {
-
-    document
-
-        .getElementById("search")
-
-        .addEventListener(
-
-            "keyup",
-
-            searchStudent
-
-        );
-
-
-
-    document
-
-        .getElementById("session")
-
-        .addEventListener(
-
-            "change",
-
-            loadAttendance
-
-        );
-
-
-
-document
-.getElementById("class")
-.addEventListener("change",async()=>{
-
-    await loadSections();
-
-    await loadAttendance();
-
-});
-
-
-
-    document
-
-        .getElementById("section")
-
-        .addEventListener(
-
-            "change",
-
-            loadAttendance
-
-        );
-
-}
-
-/*************************************************
- * Refresh Attendance
- *************************************************/
-
-function refreshAttendance() {
-
-    loadAttendance();
-
-}
-
-
-async function loadClasses(){
-
+async function loadClasses() {
     const classes = await getClasses();
-
     const select = document.getElementById("class");
-
+    if(!select) return;
+    const currentVal = select.value;
     select.innerHTML = '<option value="">All Classes</option>';
-
-    classes.forEach(cls=>{
-
+    (classes || []).forEach(cls => {
         select.innerHTML += `<option value="${cls}">${cls}</option>`;
-
     });
-
+    if(currentVal) select.value = currentVal;
 }
 
-async function loadSections(){
-
-    const className=document.getElementById("class").value;
-
-    const sections=await getSections(className);
-
-    const select=document.getElementById("section");
-
-    select.innerHTML='<option value="">All Sections</option>';
-
-    sections.forEach(sec=>{
-
+async function loadSections() {
+    const className = document.getElementById("class").value;
+    const sections = await getSections(className);
+    const select = document.getElementById("section");
+    if(!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">All Sections</option>';
+    (sections || []).forEach(sec => {
         select.innerHTML += `<option value="${sec}">${sec}</option>`;
-
     });
-
+    if(currentVal) select.value = currentVal;
 }
 
-/*************************************************
- * Attendance Card
- *************************************************/
 function attendanceCard(student) {
-
     return `
     <div class="student-card">
-
         <div class="student-photo">
-          <img src="${student.photo || ''}"
-     onerror="this.onerror=null;this.src='default-user.png';">
+          <img src="${student.photo || ''}" onerror="this.onerror=null;this.src='default-user.png';">
         </div>
-
         <div class="student-info">
-
             <div class="student-header">
-
                 <h3>${student.studentName}</h3>
-
                 <div class="attendance-toggle">
                     <label class="switch">
-                        <input
-                            type="checkbox"
-                            ${student.present ? "checked" : ""}
-                            onchange="toggleAttendance('${student.studentId}',this.checked)">
+                        <input type="checkbox" ${student.present ? "checked" : ""} onchange="toggleAttendance('${student.studentId}',this.checked)">
                         <span class="slider"></span>
                     </label>
                 </div>
-
             </div>
-
-            <p>
-                <b>ID:</b> ${student.studentId}
-                &nbsp; | &nbsp;
-                <b>Class:</b> ${student.currentClass}-${student.section}
-            </p>
-
-            <p>
-                Total Present : ${student.totalPresent || 0}
-                &nbsp; | &nbsp;
-                This Month : ${student.monthPresent || 0}
-            </p>
-
+            <p><b>ID:</b> ${student.studentId} &nbsp; | &nbsp; <b>Class:</b> ${student.currentClass}-${student.section}</p>
+            <p>Total Present : ${student.totalPresent || 0} &nbsp; | &nbsp; This Month : ${student.monthPresent || 0}</p>
         </div>
-
-    </div>
-    `;
+    </div>`;
 }
 
+// Event Bindings
+document.addEventListener("DOMContentLoaded", () => {
+    // Tab Clicks with History Push
+    document.getElementById("attendanceTab").addEventListener("click", () => initializeAttendance(true));
+    
+    const searchInput = document.getElementById("search");
+    if(searchInput) searchInput.addEventListener("input", () => {
+        if(activeModule === "attendance") searchStudent();
+    });
 
-document
-.getElementById("attendanceTab")
-.addEventListener("click", async function(){
+    document.getElementById("class").addEventListener("change", async () => {
+        if(activeModule === "attendance") {
+            await loadSections();
+            await loadAttendance();
+        }
+    });
 
-    document.getElementById("reportTab")
-        .classList.remove("active");
+    document.getElementById("section").addEventListener("change", () => {
+        if(activeModule === "attendance") loadAttendance();
+    });
 
-    document.getElementById("attendanceTab")
-        .classList.add("active");
-
-    await initializeAttendance();
-
+    document.getElementById("session").addEventListener("change", () => {
+        if(activeModule === "attendance") loadAttendance();
+    });
 });
